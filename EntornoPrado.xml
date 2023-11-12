@@ -1,0 +1,531 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<root>
+	<World>
+		<FaceSetPart name="ground" id="0">
+			<colour r="0" g="0" b="255"/>
+			<face>
+				<colour r="0" g="0" b="255"/>
+				<vertex>
+					{0,0,0}
+					{40,0,0}
+					{40,40,0}
+					{0,40,0}
+				</vertex>
+			</face>
+		</FaceSetPart>
+		<FaceSetPart name="Horizontal Walls" id="1">
+			<colour r="0" g="0" b="0"/>
+			<face>
+				<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,12.5,0}
+					{0,12.5,0}
+				</vertex>
+				<orientation>
+					{-2.1684e-19,-1.57,-1.57}
+				</orientation>
+				<position>
+					{2.5,7.5,0}
+				</position>
+			</face>
+			<face>
+				<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,15,0}
+					{0,15,0}
+				</vertex>
+				<orientation>
+					{-2.1684e-19,-1.57,-1.57}
+				</orientation>
+				<position>
+					{0,15,0}
+				</position>
+			</face>
+			<face>
+				<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,15,0}
+					{0,15,0}
+				</vertex>
+				<orientation>
+					{-2.1684e-19,-1.57,-1.57}
+				</orientation>
+				<position>
+					{25,15,0}
+				</position>
+			</face>
+			<face>
+				<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,12.5,0}
+					{0,12.5,0}
+				</vertex>
+				<orientation>
+					{-2.1684e-19,-1.57,-1.57}
+				</orientation>
+				<position>
+					{25,7.5,0}
+				</position>
+			</face>
+			<face>
+				<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,7,0}
+					{0,7,0}
+				</vertex>
+				<orientation>
+					{-2.1684e-19,-1.57,-1.57}
+				</orientation>
+				<position>
+					{16.5,12.5,0}
+				</position>
+			</face>
+			<face>
+				<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,10,0}
+					{0,10,0}
+				</vertex>
+				<orientation>
+					{-2.1684e-19,-1.57,-1.57}
+				</orientation>
+				<position>
+					{0,25,0}
+				</position>
+			</face>
+			<face>
+				<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,5,0}
+					{0,5,0}
+				</vertex>
+				<orientation>
+					{-2.1684e-19,-1.57,-1.57}
+				</orientation>
+				<position>
+					{10,35,0}
+				</position>
+			</face>
+			<face>
+				<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,5,0}
+					{0,5,0}
+				</vertex>
+				<orientation>
+					{-2.1684e-19,-1.57,-1.57}
+				</orientation>
+				<position>
+					{15,30,0}
+				</position>
+			</face>
+			<face>
+				<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,5,0}
+					{0,5,0}
+				</vertex>
+				<orientation>
+					{-2.1684e-19,-1.57,-1.57}
+				</orientation>
+				<position>
+					{2.5,30,0}
+				</position>
+			</face>
+			<face>
+				<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,1.5,0}
+					{0,1.5,0}
+				</vertex>
+				<orientation>
+					{-2.1684e-19,-1.57,-1.57}
+				</orientation>
+				<position>
+					{10,30,0}
+				</position>
+			</face>
+			<face>
+				<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,1.5,0}
+					{0,1.5,0}
+				</vertex>
+				<orientation>
+					{-2.1684e-19,-1.57,-1.57}
+				</orientation>
+				<position>
+					{18.5,35,0}
+				</position>
+			</face>
+		</FaceSetPart>
+		<FaceSetPart name="Vertical Walls" id="2">
+			<colour r="0" g="0" b="0"/>
+			<face>
+				<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,10,0}
+					{0,10,0}
+				</vertex>
+				<orientation>
+					{0,-1.57,0}
+				</orientation>
+				<position>
+					{5,2.5,0}
+				</position>
+			</face>
+			<face>
+				<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,10,0}
+					{0,10,0}
+				</vertex>
+				<orientation>
+					{0,-1.57,0}
+				</orientation>
+				<position>
+					{7.5,2.5,0}
+				</position>
+			</face>
+			<face>
+				<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,10,0}
+					{0,10,0}
+				</vertex>
+				<orientation>
+					{0,-1.57,0}
+				</orientation>
+				<position>
+					{12.5,2.5,0}
+				</position>
+			</face>
+			<face>
+				<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,10,0}
+					{0,10,0}
+				</vertex>
+				<orientation>
+					{0,-1.57,0}
+				</orientation>
+				<position>
+					{27.5,2.5,0}
+				</position>
+			</face>
+			<face>
+				<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,10,0}
+					{0,10,0}
+				</vertex>
+				<orientation>
+					{0,-1.57,0}
+				</orientation>
+				<position>
+					{32.5,2.5,0}
+				</position>
+			</face>
+			<face>
+				<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,10,0}
+					{0,10,0}
+				</vertex>
+				<orientation>
+					{0,-1.57,0}
+				</orientation>
+				<position>
+					{35,2.5,0}
+				</position>
+			</face>
+			<face>
+				<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,5,0}
+					{0,5,0}
+				</vertex>
+				<orientation>
+					{0,-1.57,0}
+				</orientation>
+				<position>
+					{16.5,7.5,0}
+				</position>
+			</face>
+			<face>
+				<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,5,0}
+					{0,5,0}
+				</vertex>
+				<orientation>
+					{0,-1.57,0}
+				</orientation>
+				<position>
+					{23.5,7.5,0}
+				</position>
+			</face>
+			<face>
+				<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,7.5,0}
+					{0,7.5,0}
+				</vertex>
+				<orientation>
+					{0,-1.57,0}
+				</orientation>
+				<position>
+					{15,7.5,0}
+				</position>
+			</face>
+			<face>
+				<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,7.5,0}
+					{0,7.5,0}
+				</vertex>
+				<orientation>
+					{0,-1.57,0}
+				</orientation>
+				<position>
+					{25,7.5,0}
+				</position>
+			</face>
+			<face>
+				<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,3,0}
+					{0,3,0}
+				</vertex>
+				<orientation>
+					{0,-1.57,0}
+				</orientation>
+				<position>
+					{15,2.5,0}
+				</position>
+			</face>
+			<face>
+				<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,3,0}
+					{0,3,0}
+				</vertex>
+				<orientation>
+					{0,-1.57,0}
+				</orientation>
+				<position>
+					{25,2.5,0}
+				</position>
+			</face>
+			<face>
+				<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,12.5,0}
+					{0,12.5,0}
+				</vertex>
+				<orientation>
+					{0,-1.57,0}
+				</orientation>
+				<position>
+					{10,25,0}
+				</position>
+			</face>
+			<face>
+				<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,5,0}
+					{0,5,0}
+				</vertex>
+				<orientation>
+					{0,-1.57,0}
+				</orientation>
+				<position>
+					{5,32.5,0}
+				</position>
+			</face>
+		</FaceSetPart>
+		<FaceSetPart name="Limit Vertical Walls" id="3">
+			<colour r="0" g="0" b="0"/>
+			<face>
+				<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,40,0}
+					{0,40,0}
+				</vertex>
+				<orientation>
+					{0,-1.57,0}
+				</orientation>
+			</face>
+			<face>
+			<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,10,0}
+					{0,10,0}
+				</vertex>
+				<orientation>
+					{0,-1.57,0}
+				</orientation>
+				<position>
+					{20,30,0}
+				</position>
+			</face>
+			<face>
+			<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,25,0}
+					{0,25,0}
+				</vertex>
+				<orientation>
+					{0,-1.57,0}
+				</orientation>
+				<position>
+					{40,0,0}
+				</position>
+			</face>
+		</FaceSetPart>
+		<FaceSetPart name="Limit Horizontal Walls" id="4">
+			<colour r="0" g="0" b="0"/>
+			<face><colour r="0" g="0" b="0"/>
+				<vertex>
+				
+					{0,0,0}
+					{5,0,0}
+					{5,21,0}
+					{0,21,0}
+				</vertex>
+				<orientation>
+					{0,-1.57,-1.81}
+				</orientation>
+				<position>
+					{20,30,0}
+				</position>
+			</face>
+			<face><colour r="0" g="0" b="0"/>
+				<vertex>
+				
+					{0,0,0}
+					{5,0,0}
+					{5,40,0}
+					{0,40,0}
+				</vertex>
+				<orientation>
+					{-2.1684e-19,-1.57,-1.57}
+				</orientation>
+			</face>
+			<face>
+			<colour r="0" g="0" b="0"/>
+				<vertex>
+					{0,0,0}
+					{5,0,0}
+					{5,20,0}
+					{0,20,0}
+				</vertex>
+				<orientation>
+					{-2.1684e-19,-1.57,-1.57}
+				</orientation>
+				<position>
+					{0,40,0}
+				</position>
+			</face>
+		</FaceSetPart>
+		<Pioneer3ATSim name="Marvin" id="5" odometryNoise="0.1">
+			<position>
+				{1,1,0}
+			</position>
+			<odometry seconds="0" microseconds="0"/>
+		</Pioneer3ATSim>
+		
+		<LMS100Sim name="LMS100" id="6" linkTo="$Marvin$">
+			<position>
+				{0.1,0,0.4}
+			</position>
+			<colour r="0" g="1" b="0"/>
+		</LMS100Sim>
+		
+		<UltrasonicSensor conusAngle="0.174533" maxRange="3" minRange="0.05" error="0" name="uc0" id="7" linkTo="$Marvin$">
+			<orientation>
+				{0,-0.1,0}
+			</orientation>
+			<position>
+				{0.2,0,0.2}
+			</position>
+			<colour r="0" g="1" b="0"/>
+		</UltrasonicSensor>
+		
+		<UltrasonicSensor conusAngle="0.174533" maxRange="3" minRange="0.05" error="0" name="ul1" id="8" linkTo="$Marvin$">
+			<orientation>
+				{6.93889e-18,-0.1,0.7}
+			</orientation>
+			<position>
+				{0.18,0.11,0.2}
+			</position>
+			<colour r="0" g="1" b="0"/>
+		</UltrasonicSensor>
+		
+		<UltrasonicSensor conusAngle="0.174533" maxRange="3" minRange="0.05" error="0" name="ur1" id="9" linkTo="$Marvin$">
+			<orientation>
+				{-6.93889e-18,-0.1,-0.7}
+			</orientation>
+			<position>
+				{0.18,-0.11,0.2}
+			</position>
+			<colour r="0" g="1" b="0"/>
+		</UltrasonicSensor>
+	</World>
+</root>
