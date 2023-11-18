@@ -8,7 +8,8 @@ global time_i
 robot = 'Marvin';
 laser = 'LMS100';
 
-time_step       = 0.01;
+time_step       = 5;
+%% 
 simulation_time = 30;
 
 % Inicialización
@@ -30,7 +31,19 @@ while true
     lidar_mes_i = apoloGetLaserData(laser);
 
     %% Navegación
-    % pos_est = navegacion(odometry_mes,lidar_mes);
+    b=size(lidar_mes_i);
+    t = 1:b(2);% t = 1:539
+    t = t*(1.5*pi/b(2));% t*(270º/539)
+    coords=cat(1,lidar_mes_i,t);
+    % Generar el array de ángulos
+    %lidar_mes_i
+    cart=polaresACartesianas(coords);
+    coordenadasX = cart(1, :);
+    coordenadasY = cart(2, :);
+    
+    % Plotear los puntos
+    %plot(coordenadasX, coordenadasY, 'o');
+    navegacion(odometry_mes_i,cart');
 
     %% Almacenar variables
     [time,pos_real,odometry_mes,lidar_mes] = acumular(time,pos_real,odometry_mes,lidar_mes,pos_real_i,odometry_mes_i,lidar_mes_i);
@@ -38,7 +51,7 @@ while true
     %% Actualizar bucle
     apoloUpdate();
     apoloResetOdometry(robot,pos_real_i(1:3));
-    pause(time_step/2)
+    pause(time_step/2);
     setTime(time_step);
     if time_i > simulation_time
         break;
