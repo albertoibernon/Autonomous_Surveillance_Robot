@@ -19,8 +19,7 @@ Rk = [R1 0 0; 0 R2 0; 0 0 R3];
 Radio=19.5; %20 metros 
 
 % Parámetros de RANSAC
-numIteraciones = 10;  % Número de iteraciones de RANSAC
-umbralDistancia = 0.01;  % Umbral de distancia para considerar inliers
+numIteraciones = 15;  % Número de iteraciones de RANSAC
 sampleSize = 2; % number of points to sample per trial
 maxDistance=0.01;
 min_num_points=5;
@@ -89,14 +88,13 @@ for j=1:length(clusters)
         fitLineFcn = @(clus) polyfit(clus(:,1),clus(:,2),1); % fit function using polyfit
         evalLineFcn = @(model, clus) sum((clus(:, 2) - polyval(model, clus(:,1))).^2,2);
         while true
-            puntos=size(clus)
+            puntos=size(clus);
             if puntos(1)>min_num_points
-                [modelRANSAC, inlierIdx] = ransac(clus,fitLineFcn,evalLineFcn, sampleSize,maxDistance);
-                inlierIdx
-                modelInliers = polyfit(clus(inlierIdx,1),clus(inlierIdx,2),1)
-                inlierPts = clus(inlierIdx,:)
-                x = [min(inlierPts(:,1)) max(inlierPts(:,1))]
-                y = modelInliers(1)*x + modelInliers(2)
+                [modelRANSAC, inlierIdx] = ransac(clus,fitLineFcn,evalLineFcn, sampleSize,maxDistance,"MaxNumTrials",numIteraciones);
+                modelInliers = polyfit(clus(inlierIdx,1),clus(inlierIdx,2),1);
+                inlierPts = clus(inlierIdx,:);
+                x = [min(inlierPts(:,1)) max(inlierPts(:,1))];
+                y = modelInliers(1)*x + modelInliers(2);
                 plot(x, y)
                 counter=0;
                 for i=1:length(inlierIdx)
