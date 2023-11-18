@@ -29,8 +29,8 @@ points_aux=points;
 counter=0;
 for i = 1:length(points_aux)
     value1 = abs(points_aux(i,1));
-    value2
-    if value2 > Radio
+    value2 = abs(points_aux(i,2));
+    if value1 > Radio || value2 > Radio
         points(i-counter,:) = [];
         counter=counter+1;
     end
