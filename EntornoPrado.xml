@@ -11,6 +11,12 @@
 					{40,40,0}
 					{0,40,0}
 				</vertex>
+				<position>
+					{0,0,0}
+				</position>
+				<orientation>
+					{0,0,0}
+				</orientation>
 			</face>
 		</FaceSetPart>
 		<FaceSetPart name="Horizontal Walls" id="1">
@@ -404,6 +410,9 @@
 					{5,40,0}
 					{0,40,0}
 				</vertex>
+				<position>
+					{0,0,0}
+				</position>
 				<orientation>
 					{0,-1.57,0}
 				</orientation>
@@ -467,6 +476,9 @@
 				<orientation>
 					{-2.1684e-19,-1.57,-1.57}
 				</orientation>
+				<position>
+					{0,0,0}
+				</position>
 			</face>
 			<face>
 			<colour r="0" g="0" b="0"/>

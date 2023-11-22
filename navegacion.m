@@ -1,4 +1,4 @@
-function navegacion(odometry_mes,points)
+function navegacion(odometry_mes,points,mapa)
 
 % Varianza del ruido del proceso 
 Qd = 0.01;
@@ -19,9 +19,9 @@ Rk = [R1 0 0; 0 R2 0; 0 0 R3];
 Radio=19.5; %20 metros 
 
 % Parámetros de RANSAC
-numIteraciones = 15;  % Número de iteraciones de RANSAC
+numIteraciones = 50;  % Número de iteraciones de RANSAC
 sampleSize = 2; % number of points to sample per trial
-maxDistance=0.01;
+maxDistance=0.02;
 min_num_points=5;
 
 points_aux=points;
@@ -60,7 +60,7 @@ end
 % Filtrado
 for i=1:length(clusters)
     clus=clusters{i};
-    if(length(clus)<5)
+    if(length(clus)<min_num_points)
         clusters{i}=[];
     end
 end
@@ -80,6 +80,7 @@ for i=1:length(clusters)
     end
 end
 
+dist_real=[];
 for j=1:length(clusters)
     clus=clusters{j};
     tam=size(clus);
@@ -90,12 +91,18 @@ for j=1:length(clusters)
         while true
             puntos=size(clus);
             if puntos(1)>min_num_points
-                [modelRANSAC, inlierIdx] = ransac(clus,fitLineFcn,evalLineFcn, sampleSize,maxDistance,"MaxNumTrials",numIteraciones);
+                [~, inlierIdx] = ransac(clus,fitLineFcn,evalLineFcn, sampleSize,maxDistance,"MaxNumTrials",numIteraciones);
                 modelInliers = polyfit(clus(inlierIdx,1),clus(inlierIdx,2),1);
                 inlierPts = clus(inlierIdx,:);
+                p1 = cat(2,inlierPts(1,1),inlierPts(1,2));
+                p2 = cat(2,inlierPts(end,1),inlierPts(end,2));
                 x = [min(inlierPts(:,1)) max(inlierPts(:,1))];
-                y = modelInliers(1)*x + modelInliers(2);
+                y = modelInliers(1)*x + modelInliers(2); %definción de la recta
+                value = get_distance([0 0], p1, p2);
+                dist_real=[dist_real,value(1)];
                 plot(x, y)
+                hold on
+                %plot([0 value(2)],[0 value(3)])
                 counter=0;
                 for i=1:length(inlierIdx)
                     value = inlierIdx(i,1);
@@ -110,6 +117,9 @@ for j=1:length(clusters)
         end
     end
 end
+size(dist_real)
+matches=matching(mapa,dist_real,[odometry_mes(1) odometry_mes(2)])
+size(matches)
 clf
 
 % Distancia mínima del robot a cada recta obtenida del ransac

@@ -8,13 +8,16 @@ global time_i
 robot = 'Marvin';
 laser = 'LMS100';
 
-time_step       = 5;
+time_step       = 1;
 %% 
 simulation_time = 30;
+giro=0;
+mapa = importdata('mapa.xlsx');
 
 % Inicialización
 init(robot)
 time = []; pos_real = []; odometry_mes = []; lidar_mes = [];
+
 
 % Bucle de Simulación
 while true
@@ -33,17 +36,23 @@ while true
     %% Navegación
     b=size(lidar_mes_i);
     t = 1:b(2);% t = 1:539
-    t = t*(1.5*pi/b(2));% t*(270º/539)
+    t = t*(((1.5*pi))/b(2));% t*(270º/539 puntos)
+    % Para fijar eje:
+    % giro=giro+odometry_mes_i(3);
+    % t=t+giro;
     coords=cat(1,lidar_mes_i,t);
     % Generar el array de ángulos
     %lidar_mes_i
     cart=polaresACartesianas(coords);
-    coordenadasX = cart(1, :);
-    coordenadasY = cart(2, :);
+    %Para fijar eje:
+    % cart(1, :)=cart(1, :)+odometry_mes_i(1);
+    % cart(2, :)=cart(2, :)+odometry_mes_i(2);
+    coordenadasX = cart(1, :)+odometry_mes_i(1);
+    coordenadasY = cart(2, :)+odometry_mes_i(2);
     
     % Plotear los puntos
     %plot(coordenadasX, coordenadasY, 'o');
-    navegacion(odometry_mes_i,cart');
+    navegacion(odometry_mes_i,cart',mapa);
 
     %% Almacenar variables
     [time,pos_real,odometry_mes,lidar_mes] = acumular(time,pos_real,odometry_mes,lidar_mes,pos_real_i,odometry_mes_i,lidar_mes_i);
@@ -65,7 +74,7 @@ save('output\odometry_calibration.mat','odometry_mes')
 save('output\lidar_calibration.mat','lidar_mes')
 
 %% Post-pro
-figure();plot(time,pos_real(:,1)); hold on;grid on;plot(time,odometry_mes(:,1));xlabel('time (s)');ylabel('x (m)');title('x');legend('real','measured')
-figure();plot(time,pos_real(:,2)); hold on;grid on;plot(time,odometry_mes(:,2));xlabel('time (s)');ylabel('y (m)');title('y');legend('real','measured')
-figure();plot(time,pos_real(:,4).*180/pi); hold on;grid on;plot(time,odometry_mes(:,3).*180/pi);xlabel('time (s)');ylabel('theta (deg)');title('theta');legend('real','measured')
-figure();plot(pos_real(:,1),pos_real(:,2)); hold on;grid on;plot(odometry_mes(:,1),odometry_mes(:,2));xlabel('x (m)');ylabel('y (m)');title('trayectoria');legend('real','measured')
+% figure();plot(time,pos_real(:,1)); hold on;grid on;plot(time,odometry_mes(:,1));xlabel('time (s)');ylabel('x (m)');title('x');legend('real','measured')
+% figure();plot(time,pos_real(:,2)); hold on;grid on;plot(time,odometry_mes(:,2));xlabel('time (s)');ylabel('y (m)');title('y');legend('real','measured')
+% figure();plot(time,pos_real(:,4).*180/pi); hold on;grid on;plot(time,odometry_mes(:,3).*180/pi);xlabel('time (s)');ylabel('theta (deg)');title('theta');legend('real','measured')
+% figure();plot(pos_real(:,1),pos_real(:,2)); hold on;grid on;plot(odometry_mes(:,1),odometry_mes(:,2));xlabel('x (m)');ylabel('y (m)');title('trayectoria');legend('real','measured')
