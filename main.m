@@ -52,7 +52,7 @@ while true
     
     % Plotear los puntos
     %plot(coordenadasX, coordenadasY, 'o');
-    navegacion(odometry_mes_i,cart',mapa);
+    navegacion(pos_real_i,cart',mapa);
 
     %% Almacenar variables
     [time,pos_real,odometry_mes,lidar_mes] = acumular(time,pos_real,odometry_mes,lidar_mes,pos_real_i,odometry_mes_i,lidar_mes_i);

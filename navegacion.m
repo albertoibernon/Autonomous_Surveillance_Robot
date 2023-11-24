@@ -81,6 +81,7 @@ for i=1:length(clusters)
 end
 
 dist_real=[];
+num_recta=0;
 for j=1:length(clusters)
     clus=clusters{j};
     tam=size(clus);
@@ -100,9 +101,11 @@ for j=1:length(clusters)
                 y = modelInliers(1)*x + modelInliers(2); %definción de la recta
                 value = get_distance([0 0], p1, p2);
                 dist_real=[dist_real,value(1)];
+                num_recta=num_recta+1;
                 plot(x, y)
                 hold on
-                %plot([0 value(2)],[0 value(3)])
+                plot([0 value(2)],[0 value(3)])
+                text([value(2)],[value(3)],[num2str(num_recta)])
                 counter=0;
                 for i=1:length(inlierIdx)
                     value = inlierIdx(i,1);
