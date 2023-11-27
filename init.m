@@ -19,6 +19,4 @@ apoloUpdate();
 pos_real = apoloGetLocationMRobot(robot);
 apoloResetOdometry(robot,pos_real(1:3));
 
-
-
 end

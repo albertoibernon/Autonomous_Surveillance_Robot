@@ -1,26 +1,11 @@
-function navegacion(odometry_mes,points,mapa)
+function [matches,Hk]=navegacion(odometry_mes,points,mapa,X)
 
-% Varianza del ruido del proceso 
-Qd = 0.01;
-Qb = 0.02;
-Qk_1 = [Qd 0; 0 Qb];
-Pxini = 0.001;
-Pyini = 0.001;
-Pthetaini = 0.001;
-Pk = [Pxini 0 0; 0 Pyini 0 ; 0 0 Pthetaini];
-maxClusters=10; %Máxima cantidad de paredes que se prevee detectar a la vez
-
-% Varianza en la medida
-R1 = 0.001;
-R2 = 0.001;
-R3 = 0.001;
-Rk = [R1 0 0; 0 R2 0; 0 0 R3];
-
+%maxClusters=10; %Máxima cantidad de paredes que se prevee detectar a la vez
 Radio=19.5; %20 metros 
 
 % Parámetros de RANSAC
-numIteraciones = 50;  % Número de iteraciones de RANSAC
-sampleSize = 2; % number of points to sample per trial
+numIteraciones = 100;  % Número de iteraciones de RANSAC
+sampleSize = 3; % number of points to sample per trial
 maxDistance=0.02;
 min_num_points=5;
 
@@ -75,12 +60,13 @@ for i=1:length(clusters)
     clus=clusters{i};
     tam=size(clus);
     if(tam(1)>min_num_points)
-        plot(clus(:,1), clus(:,2),'o');
-        hold on
+        % plot(clus(:,1), clus(:,2),'o');
+        % hold on
     end
 end
 
 dist_real=[];
+ang_real=[];
 num_recta=0;
 for j=1:length(clusters)
     clus=clusters{j};
@@ -97,15 +83,16 @@ for j=1:length(clusters)
                 inlierPts = clus(inlierIdx,:);
                 p1 = cat(2,inlierPts(1,1),inlierPts(1,2));
                 p2 = cat(2,inlierPts(end,1),inlierPts(end,2));
-                x = [min(inlierPts(:,1)) max(inlierPts(:,1))];
-                y = modelInliers(1)*x + modelInliers(2); %definción de la recta
+                % x = [min(inlierPts(:,1)) max(inlierPts(:,1))];
+                % y = modelInliers(1)*x + modelInliers(2); %definción de la recta
                 value = get_distance([0 0], p1, p2);
                 dist_real=[dist_real,value(1)];
+                ang_real=[ang_real,value(4)];
                 num_recta=num_recta+1;
-                plot(x, y)
-                hold on
-                plot([0 value(2)],[0 value(3)])
-                text([value(2)],[value(3)],[num2str(num_recta)])
+                % plot(x, y);
+                % hold on
+                % plot([0 value(2)],[0 value(3)]);
+                % text([value(2)],[value(3)],[num2str(num_recta)]);
                 counter=0;
                 for i=1:length(inlierIdx)
                     value = inlierIdx(i,1);
@@ -120,10 +107,8 @@ for j=1:length(clusters)
         end
     end
 end
-size(dist_real)
-matches=matching(mapa,dist_real,[odometry_mes(1) odometry_mes(2)])
-size(matches)
-clf
+[matches,Hk]=matching(mapa,dist_real,ang_real,[odometry_mes(1) odometry_mes(2)],X);
+%clf
 
 % Distancia mínima del robot a cada recta obtenida del ransac
 % distancias_clusters= ... 

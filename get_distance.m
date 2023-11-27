@@ -34,5 +34,23 @@ function output = get_distance(punto,p1,p2)
             end
         end
     end
-    output=[distancia_ideal,final];
+
+    % Parametros recta distancia
+    A1 = final(2) - y0;
+    B1 = x0 - final(1);
+
+    dir_recta1 = [A, B];
+    dir_recta2 = [A1, B1];
+
+    % Obtenemos el ángulo que forman las dos rectas 
+    cos_theta = dot(dir_recta1, dir_recta2) / (norm(dir_recta1) * norm(dir_recta2));
+    angulo = acos(cos_theta);
+
+    if abs(angulo) > 1.5708
+        angulo = pi-abs(angulo);
+    else
+        angulo=abs(angulo);
+    end
+
+    output=[distancia_ideal,final,angulo];
 end
