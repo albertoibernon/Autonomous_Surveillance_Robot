@@ -21,19 +21,19 @@ function output = get_distance(punto,p1,p2)
     distancia_ideal = abs(A*x0 + B*y0 + C) / sqrt(A^2 + B^2);
     final = [(B*(B*x0 - A*y0) - A*C)/(A^2 + B^2), (A*(A*y0 - B*x0) - B*C)/(A^2 + B^2)];
 
-    if final(1)<limite_s_x  && final(1)>limite_i_x
-    else
-        if final(2)<limite_s_y  && final(2)>limite_i_y
-        else
-            if distancia_limite1>distancia_limite2
-            final = p2;
-            distancia_ideal = distancia_limite2;
-            else
-            final = p1;
-            distancia_ideal = distancia_limite1;
-            end
-        end
-    end
+    % if final(1)<limite_s_x  && final(1)>limite_i_x
+    % else
+    %     if final(2)<limite_s_y  && final(2)>limite_i_y
+    %     else
+    %         if distancia_limite1>distancia_limite2
+    %         final = p2;
+    %         distancia_ideal = distancia_limite2;
+    %         else
+    %         final = p1;
+    %         distancia_ideal = distancia_limite1;
+    %         end
+    %     end
+    % end
 
     % Parametros recta distancia
     A1 = final(2) - y0;

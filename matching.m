@@ -1,4 +1,4 @@
-function [matches,H]=matching(mapa,dist_real,ang_real,pos,X)
+function [matches,H]=matching(mapa,dist_real,ang_real,pos)
     
     % distancia real -> distancia obtenida tras kmeans, 
     % clusterización de los inliers y obtención del mínimo de cada cluster
@@ -46,51 +46,25 @@ function [matches,H]=matching(mapa,dist_real,ang_real,pos,X)
     % Y son las observaciones
     % X muestra de referencia 
     H=[];
+    posiciones=[];
     for i=1:b(1)
         fila=diffDistancias(i,:);
         [match,I]=min(fila);
         error_angulo=diffAngulos(i,I);
-        todosmatches=[todosmatches,match];
-        todosangulos=[todosangulos,error_angulo];
-        dist_maha= mahal(match,X);
-        % if dist_maha==Inf
-        %     if(error_angulo < margen_angulo && match < margen_distancia )
-        %     matches=[matches,match];
-        %     numeracion=[numeracion,i];
-        %     % points_expected(I,2)
-        %     % dist_est(I)
-        %     errores=[errores,error_angulo];
-        %     Hx=-(points_expected(I,1)-pos(1))/(sqrt(dist_est(I)));
-        %     Hy=-(points_expected(I,2)-pos(2))/(sqrt(dist_est(I)));
-        %     H=cat(1,H,[Hx,Hy]);
-        %     end
-        % elseif(dist_maha<5)
-        % 
-        % matches=[matches,match];
-        % numeracion=[numeracion,i];
-        % % points_expected(I,2)
-        % % dist_est(I)
-        % errores=[errores,error_angulo];
-        % Hx=-(points_expected(I,1)-pos(1))/(sqrt(dist_est(I)));
-        % Hy=-(points_expected(I,2)-pos(2))/(sqrt(dist_est(I)));
-        % H=cat(1,H,[Hx,Hy]);
-        % 
-        % end
-        if(error_angulo < margen_angulo && match < margen_distancia )
+        if(error_angulo < margen_angulo)
+            %todosmatches=[todosmatches,match];
+            %numeracion=[numeracion,j];
+            %errores=[errores,error_angulo];
             matches=[matches,match];
-            numeracion=[numeracion,i];
-            % points_expected(I,2)
-            % dist_est(I)
-            errores=[errores,error_angulo];
-            Hx=-(points_expected(I,1)-pos(1))/(sqrt(dist_est(I)));
-            Hy=-(points_expected(I,2)-pos(2))/(sqrt(dist_est(I)));
+            Hx=-(points_expected(I,1)-pos(1))/(dist_est(I));
+            Hy=-(points_expected(I,2)-pos(2))/(dist_est(I));
             H=cat(1,H,[Hx,Hy]);
         end
     end
     
-matches = cat(1,matches,errores);
-matches = cat(1,matches,numeracion);
-%todosmatches=cat(1,todosmatches,todosangulos)
+%matches = cat(1,matches,errores);
+%matches = cat(1,matches,numeracion);
+%todosmatches=cat(1,todosmatches,todosangulos);
 a=size(H);
 fila3_H=zeros(1,a(1));
 H=cat(2,H,fila3_H');

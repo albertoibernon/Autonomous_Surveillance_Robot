@@ -8,15 +8,15 @@ global time_i
 robot = 'Marvin';
 laser = 'LMS100';
 
-time_step       = 0.05;
-simulation_time = 40;
+time_step       = 0.1;
+simulation_time = 75;
 giro=0;
 mapa = importdata('mapa.xlsx');
 
 % Definimos las varianzas
-Pxini = 0.1;
-Pyini = 0.1;
-Pthetaini = 0.1;
+Pxini = 0.01;
+Pyini = 0.01;
+Pthetaini = 0.01;
 Pk = [Pxini 0 0; 0 Pyini 0 ; 0 0 Pthetaini];
 
 % Varianza del ruido del proceso
@@ -32,11 +32,12 @@ R = 0.01;
 init(robot)
 time = []; pos_real = []; odometry_mes = []; lidar_mes = []; odometry_cor=[]; P_acumulado = []; C_acumulado=[];
 X_pre=[];
-Xk_est=[1;1;0];
 muestra=[0.02; 0.02; 0.02; 0.02; 0.02; 0.02; 0.02; 0.02];
 location= apoloGetLocationMRobot(robot);
 correccion=[0;0;0];
 Xk=[location(1);location(2);location(4)];
+Xk_est=[location(1);location(2);location(4)];
+e_acumulado=[];
 
 % Bucle de Simulación
 while true
@@ -94,39 +95,55 @@ while true
           (sin(Xk_1(3)+Uk(2)/2)) (0.5*Uk(1)*cos(Xk_1(3)+Uk(2)/2));
            0                     1                                 ];
     P_k = Ak*Pk_1*((Ak)') + Bk*Qk_1*((Bk)');
+
     %Observación, predicción e innoviación
-    [match,Hk]=navegacion(X_k,cart',mapa,muestra);
-    if isempty(match)
+    [dist_real,ang_real]=navegacion(cart');
+    [matches,H]=matching(mapa,dist_real,ang_real,[X_k(1) X_k(2)]);
+    if isempty(matches)
         Xk = X_k;
         Pk = P_k;
+        
     else
-        Yk=match(1,:);
-        muestra=cat(1,muestra, match(1,:)');
+        a=size(H);
+        Rk=eye(a(1))*(R);
+        Sk = H*P_k*((H)') + Rk;
+
+        % Distancia de mahalonobis
+        Yk=[];
+        Hk=[];
+        for j=1:length(matches)
+            m=matches(j)*inv(Sk)*matches(j);
+            dist=m(j,j);
+            if(dist<0.0039)
+                Yk=[Yk;matches(j)];
+                Hk=cat(1,Hk,H(j,:));
+            end
+        end
+        Hk
         a=size(Hk);
-        Rk=eye(a(1))*R;
+        if a==0
+            Xk = X_k;
+            Pk = P_k;
+        else
+        Rk=eye(a(1))*(R);
         Sk = Hk*P_k*((Hk)') + Rk;
         Wk = P_k*((Hk)')*inv(Sk);
     
         % Correccion
-        Xk = X_k + Wk*Yk';
+        Xk = X_k + Wk*Yk;
         Pk = (eye(3)-Wk*Hk)*P_k;
-        correccion= Wk*Yk';
+        correccion= Wk*Yk;
+        end
+
     end
     P_valores=[Pk(1,1),Pk(2,2),Pk(3,3)];
-    ex=Xk(1)-pos_real_i(1)
-    ey=Xk(1)-pos_real_i(1)
-    
-    
+    e=[Xk(1)-pos_real_i(1);Xk(2)-pos_real_i(2);Xk(3)-pos_real_i(4)]
+    e_acumulado=[e_acumulado;e'];
 
-    % %S�lo para almacenarlo
-    % Xestimado(:,l) = Xk;
-    % Pacumulado(1,l) = Pk(1,1);
-    % Pacumulado(2,l) = Pk(2,2);
-    % Pacumulado(3,l) = Pk(3,3);
 
     %% Almacenar variables
     [time,pos_real,odometry_mes,odometry_cor,P_acumulado,C_acumulado] = acumular(time,pos_real,odometry_mes,odometry_cor,P_acumulado, C_acumulado,pos_real_i,odometry_mes_i,Xk',P_valores,correccion');
-    
+
     %% Actualizar bucle
     apoloUpdate();
     p=size(muestra);
@@ -151,7 +168,7 @@ plot(time,pos_real(:,1));
 hold on;
 grid on;
 plot(time,odometry_cor(:,1));
-plot(time,X_pre(:,1));
+plot(time,odometry_mes(:,1));
 xlabel('time (s)');
 ylabel('x (m)');
 title('x');
@@ -164,6 +181,14 @@ legend('real','ekf','odometry')
 % plot(time,P_acumulado(:,2)); 
 % plot(time,P_acumulado(:,3)); 
 % legend('Px','Py','Ptheta')
+
+figure()
+plot(time,e_acumulado(:,1)); 
+hold on;
+grid on;
+plot(time,e_acumulado(:,2)); 
+%plot(time,e_acumulado(:,3)); 
+legend('ex','ey','etheta')
 
 % figure()
 % plot(time,C_acumulado(:,1)); 
