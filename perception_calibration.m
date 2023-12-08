@@ -1,21 +1,15 @@
 %**********************************************************************
 % FUNCTION FOR CALIBRATING THE EXTEROCEPTIVE SENSORS OF THE ROBOTS
-% using the 'GyNRpractica1.xml' map in Apolo
-% with two Landmarks like these:
-%	<LandMark  name ="LM1" mark_id="1">
-%		  <position> {3.9,0,0.4}	</position>
-%	</LandMark>
-%	
-%	<LandMark  name = "LM2" mark_id="2">
-%		  <position> {0.1,3.9,0.4} </position>
-%	</LandMark> 
+% Apolo environment: 'Exteroceptive_sensors_calibration.xml'
 %**********************************************************************
 
 close all;
 clear
 
-%% Uktrasonic Sensor
-apoloPlaceMRobot('Marvin',[2,0,0],0)
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Ultrasonic Sensor
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+apoloPlaceMRobot('Marvin',[1.8,0,0],0)
 % Initialize an empty array to store ultrasonic measurements
 ultrasonicMeasures = [];
 
@@ -28,19 +22,22 @@ for i = 1:numSamples
 end
 
 % Plot a histogram of the ultrasonic sensor measurements
-figure;
-hold on; 
-grid on; 
-plot(ultrasonicMeasures);
+% figure;
+% hold on; 
+% grid on; 
+% plot(ultrasonicMeasures);
 
 % Add a title to the histogram
-title('Plot of Ultrasonic Sensor Measurements');
+% title('Plot of Ultrasonic Sensor Measurements');
+% xlabel('Measures');
+% ylabel('Distance (m)');
 
 % Calculate the variance of the ultrasonic measurements
 ultrasonicVar = var(ultrasonicMeasures);
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Laser Points Cloud
+%%%%%%%%%%%%%%%%%%%%%%%%%%
 apoloPlaceMRobot('Marvin',[0,0,0],0)
 % Initialize an empty array to store laser cloud data
 laserCloud = [];
@@ -53,22 +50,22 @@ for i = 1:numSamples
     laserCloud(end+1, :) = apoloGetLaserData('LMS100');
 end
 
-% Calculate the variance of each laser beam
-laserVarBeam = [];
-for i = 1:size(laserCloud, 2)
+% Calculate the variance for a specific laser beams
+laserVarBeam = []
+beams = [90 270 450]
+for i = beams
     laserVarBeam(end+1) = var(laserCloud(:, i));
 end
 
 % Plot a histogram of the laser beam variances
-figure; 
-hold on; 
-grid on; 
-histogram(laserVarBeam);
+% figure; 
+% hold on; 
+% grid on; 
+% histogram(laserVarBeam);
 
-% Calculate the mean variance of all laser beams
-laserVar = mean(laserVarBeam);
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Laser Landmarks
+%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Set the number of samples
 numSamples = 1000;
@@ -123,4 +120,4 @@ xlabel('Distance (m)');
 ylabel('Probability');
 
 %% Saving data
-save('sensors_error.mat',"ultrasonicVar", "laserVar","laserDistanceVar","laserAngleVar");
+save('sensors_error.mat',"ultrasonicVar","laserDistanceVar","laserAngleVar");
