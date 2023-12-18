@@ -8,7 +8,12 @@ global time_i
 robot = 'Marvin';
 laser = 'LMS100';
 
-time_step       = 0.1;
+%% Inicialización
+pose_init = [1, 1, 0]; % Pose inicial
+pose_goal = [8, 1, 0];     % Pose objetivo
+pos_init = init(robot,pose_init);
+
+time_step       = 0.05;
 simulation_time = 75;
 giro=0;
 mapa = importdata('mapa.xlsx');
@@ -25,25 +30,28 @@ QG=1.955e-05;
 Qk_1 =[QL 0;0 QG];
 
 % Varianza del lidar
-%R = 1.0125e-02;
-R = 0.01;
+% R = 0.01;
+R = 9.62014799313916e-06;
 
 % Inicialización
-init(robot)
 time = []; pos_real = []; odometry_mes = []; lidar_mes = []; odometry_cor=[]; P_acumulado = []; C_acumulado=[];
 X_pre=[];
 muestra=[0.02; 0.02; 0.02; 0.02; 0.02; 0.02; 0.02; 0.02];
-location= apoloGetLocationMRobot(robot);
 correccion=[0;0;0];
-Xk=[location(1);location(2);location(4)];
-Xk_est=[location(1);location(2);location(4)];
+Xk     = [pos_init(1) pos_init(2) pos_init(4)]'; % Real initial position
+Xk_est = Xk;                                    % Estimated initial position
+angulo_scattering = linspace(-0.75*pi,0.75*pi,539) - 1.5*pi/539*ones(1,539);
 e_acumulado=[];
 
-% Bucle de Simulación
+vel_avance  = 1; % Avance [m/s]
+vel_rot_max = 0.5; % Avance [m/s]
+[pthObj,vel_comando] = planificador_global(pose_init,pose_goal,time_step,simulation_time);
+ii = 1;
+%% Bucle de Simulación
 while true
     %% Planificador
-    speeds = planificador; % [velocidad de avance, velocidad de rotación] [m/s,rad/s]
-    
+    % speeds = planificador; % [velocidad de avance, velocidad de rotación] [m/s,rad/s]
+    speeds = vel_comando(ii,:);
     %% DKE
     pos_real_i = dke(robot,speeds,time_step); % [x,y,z,theta] [m,rad]
 
@@ -52,35 +60,20 @@ while true
     
     %% Percepción (Sensores Exteroceptivos)
     lidar_mes_i = apoloGetLaserData(laser);
+    b=size(lidar_mes_i);
+    coords_polar = [lidar_mes_i;angulo_scattering];
+
+    % Generar Nube de Puntos en Coord Cartesinas en Ejes Cuerpo del Robot
+    coords_cart=polaresACartesianas(coords_polar);
+
+    % % Plotear Nube de Puntos
+    % coordenadasX = coords_cart(1,:) + odometry_mes_i(1); % Para fijar eje:
+    % coordenadasY = coords_cart(2,:) + odometry_mes_i(2); % Para fijar eje:
+    % figure();plot(coordenadasX, coordenadasY, 'o'); grid minor;
 
     %% Navegación
-    b=size(lidar_mes_i);
-    t = 1:b(2);% t = 1:539
-    t = t*(((1.5*pi))/b(2));% t*(270º/539 puntos)
-    % Para fijar eje:
-    % giro=giro+odometry_mes_i(3);
-    % t=t+giro;
-    coords=cat(1,lidar_mes_i,t);
-    % Generar el array de ángulos
-    %lidar_mes_i
-    cart=polaresACartesianas(coords);
-    %Para fijar eje:
-    % cart(1, :)=cart(1, :)+odometry_mes_i(1);
-    % cart(2, :)=cart(2, :)+odometry_mes_i(2);
-    % coordenadasX = cart(1, :)+odometry_mes_i(1);
-    % coordenadasY = cart(2, :)+odometry_mes_i(2);
-    
-    % Plotear los puntos
-    %plot(coordenadasX, coordenadasY, 'o');
-
-    %% Nuevo ciclo, k-1 = k.
-    
-    Uk=speeds*time_step;
-    Xk_est = [(Xk_est(1) + Uk(1)*cos(Xk_est(3)+(Uk(2)/2)));
-           (Xk_est(2) + Uk(1)*sin(Xk_est(3)+(Uk(2)/2)));
-           (Xk_est(3) + Uk(2))];
-
-    X_pre=[X_pre;Xk_est'];
+    % Nuevo ciclo (k-1 = k)
+    Uk = speeds*time_step; % [distancia ángulo]
     Xk_1 = Xk;
     Pk_1 = Pk;
     
@@ -88,6 +81,7 @@ while true
     X_k = [(Xk_1(1) + Uk(1)*cos(Xk_1(3)+(Uk(2)/2)));
            (Xk_1(2) + Uk(1)*sin(Xk_1(3)+(Uk(2)/2)));
            (Xk_1(3) + Uk(2))];
+
     Ak = [1 0 (-Uk(1)*sin(Xk_1(3)+Uk(2)/2));
           0 1 (Uk(1)*cos(Xk_1(3)+Uk(2)/2));
           0 0 1                             ];
@@ -96,67 +90,63 @@ while true
            0                     1                                 ];
     P_k = Ak*Pk_1*((Ak)') + Bk*Qk_1*((Bk)');
 
-    %Observación, predicción e innoviación
-    [dist_real,ang_real]=navegacion(cart');
-    [matches,H]=matching(mapa,dist_real,ang_real,[X_k(1) X_k(2)]);
+    % Predicción del vector de las observaciones
+    [dist_est,ang_est,points_est] = prediccion_observacion(mapa,[X_k(1) X_k(2)]);
+
+    % Observación: vector de medidas
+    distancia_medida = observacion(coords_cart');
+
+    % Comparación e Innovación (matches)
+    [matches,H] = comparacion(distancia_medida,[X_k(1) X_k(2)],dist_est,points_est);
+    
     if isempty(matches)
         Xk = X_k;
         Pk = P_k;
-        
     else
         a=size(H);
         Rk=eye(a(1))*(R);
         Sk = H*P_k*((H)') + Rk;
 
-        % Distancia de mahalonobis
-        Yk=[];
-        Hk=[];
+        % Distancia de Mahalonobis
+        Yk=[]; Hk=[];
         for j=1:length(matches)
-            m=matches(j)*inv(Sk)*matches(j);
-            dist=m(j,j);
-            if(dist<0.0039)
-                Yk=[Yk;matches(j)];
-                Hk=cat(1,Hk,H(j,:));
+            dist_mahalanobis = matches(j)*inv(Sk)*matches(j);
+            if dist_mahalanobis(j,j) < 0.0039 % Parámetro extraído de la tabla de Mahalanobis para n_z = 1
+                Yk = [Yk; matches(j)]; % Innovación
+                Hk = cat(1,Hk,H(j,:));
             end
         end
-        Hk
+        
         a=size(Hk);
         if a==0
             Xk = X_k;
             Pk = P_k;
         else
-        Rk=eye(a(1))*(R);
-        Sk = Hk*P_k*((Hk)') + Rk;
-        Wk = P_k*((Hk)')*inv(Sk);
+            Rk = eye(a(1))*(R);
+            Sk = Hk*P_k*(Hk') + Rk;
+            Wk = P_k*(Hk')*inv(Sk);
     
-        % Correccion
-        Xk = X_k + Wk*Yk;
-        Pk = (eye(3)-Wk*Hk)*P_k;
-        correccion= Wk*Yk;
+            % Correccion
+            Xk = X_k + Wk*Yk;
+            Pk = (eye(3) - Wk*Hk)*P_k;
+            correccion= Wk*Yk;
         end
-
     end
     P_valores=[Pk(1,1),Pk(2,2),Pk(3,3)];
-    e=[Xk(1)-pos_real_i(1);Xk(2)-pos_real_i(2);Xk(3)-pos_real_i(4)]
-    e_acumulado=[e_acumulado;e'];
-
+    e = [Xk(1)-pos_real_i(1);
+         Xk(2)-pos_real_i(2);
+         Xk(3)-pos_real_i(4)];
+    e_acumulado = [e_acumulado; e'];
 
     %% Almacenar variables
     [time,pos_real,odometry_mes,odometry_cor,P_acumulado,C_acumulado] = acumular(time,pos_real,odometry_mes,odometry_cor,P_acumulado, C_acumulado,pos_real_i,odometry_mes_i,Xk',P_valores,correccion');
 
     %% Actualizar bucle
     apoloUpdate();
-    p=size(muestra);
-    if p(1)>50
-        while p(1)>50
-            muestra(1,:)=[];
-            p=size(muestra);
-        end
-    end
-    % apoloResetOdometry(robot,pos_real_i(1:3));
-    % apoloResetOdometry(robot,[0 0 0]);
+    apoloResetOdometry(robot,Xk');
     pause(time_step/2);
     setTime(time_step);
+    ii = ii + 1;
     if time_i > simulation_time
         break;
     end

@@ -11,4 +11,5 @@ bwimage = 1 - double(grayimage)/255;
 bwimage = bwimage > threshold;
 % Convert image into  binaryOccupancyMap  with scale  (pixes/meter).
 map = binaryOccupancyMap(bwimage,scale);
+
 end

@@ -1,5 +1,11 @@
-function speeds = planificador(time_i)
+function speeds = planificador
     global time_i
+    
+    %% Close-loop
+    vel_avance  = 1; % Avance [m/s]
+    vel_rot_max = 0.5; % Avance [m/s]
+
+    %% Open loop
     if time_i < 8.5
         speeds = [1 0]; % Avance y rotación [m/s rad/s]
 
@@ -18,14 +24,14 @@ function speeds = planificador(time_i)
         elseif time_i >= 55 && time_i < 55.5
         speeds = [1 -1]; % Avance y rotación [m/s rad/s]
 
-         elseif time_i >= 68 && time_i < 69.6
+        elseif time_i >= 68 && time_i < 69.6
         speeds = [1 -1]; % Avance y rotación [m/s rad/s]
     else
         speeds = [1 0]; % Avance y rotación [m/s rad/s]
 
     end
 
-    % Para la calibración
-     %speeds = [0 0.1];
-     %speeds = [1 -1]; % Avance y rotación [m/s rad/s]
+    %% Para la calibración
+     %speeds = [0 0];
+     speeds = [1 0]; % Avance y rotación [m/s rad/s]
 end

@@ -18,17 +18,17 @@ goal = [2 , 35, 0];
 % goal = [43 , 11, 0];
 
 %% Show the start and goal positions of the robot
-% show(map)
-% hold on
-% width = 2.5;
-% plot(start(1), start(2), 'ro', LineWidth=width)
-% plot(goal(1), goal(2), 'mo', LineWidth=width)
+show(map)
+hold on
+width = 2.5;
+plot(start(1), start(2), 'ro', LineWidth=width)
+plot(goal(1), goal(2), 'mo', LineWidth=width)
 % Show the start and goal headings
-% r = 1;
-% width = 2;
-% plot([start(1), start(1) + r*cos(start(3))], [start(2), start(2) + r*sin(start(3))], 'r-', LineWidth=width)
-% plot([goal(1), goal(1) + r*cos(goal(3))], [goal(2), goal(2) + r*sin(goal(3))], 'm-', LineWidth=width)
-% hold off
+r = 1;
+width = 2;
+plot([start(1), start(1) + r*cos(start(3))], [start(2), start(2) + r*sin(start(3))], 'r-', LineWidth=width)
+plot([goal(1), goal(1) + r*cos(goal(3))], [goal(2), goal(2) + r*sin(goal(3))], 'm-', LineWidth=width)
+hold off
 
 %% Define map limits
 bounds = [map.XWorldLimits; map.YWorldLimits; [-pi pi]];
@@ -40,7 +40,7 @@ ss.MinTurningRadius = 0.2;
 %% Define a state validator object by state space.
 stateValidator = validatorOccupancyMap(ss); 
 stateValidator.Map = map;
-stateValidator.ValidationDistance = 0.1; %Planner check if there is an obstacle between this distance in the path.
+stateValidator.ValidationDistance = 0.1; % Planner check if there is an obstacle between this distance in the path.
 
 %% Create RRT* path planner and set parameters.
 planner = plannerRRTStar(ss, stateValidator);
@@ -57,7 +57,7 @@ planner.MaxIterations = 35000;
 %% Assign a function to know when to stop the RTT* algorithm based on distance from actual state to goal.
 planner.GoalReachedFcn = @exampleHelperCheckIfGoal;
 
-%% Define a control random number generator the seed is 1 to get the "same result" each execution.
+%% Define a control random number generator.The seed is 1 to get the "same result" each execution.
 rng(1,'twister')
 
 %% Plan a path.
@@ -71,7 +71,7 @@ show(map)
 hold on
 plot(solnInfo.TreeData(:,1), solnInfo.TreeData(:,2), '.-');
 %% Interpolate and plot path
-interpolate(pthObj,300)
+interpolate(pthObj,400)
 plot(pthObj.States(:,1), pthObj.States(:,2), 'r-', 'LineWidth', 2)
 %% Show the start and goal in the grid map
 plot(start(1), start(2), 'ro', LineWidth=width)

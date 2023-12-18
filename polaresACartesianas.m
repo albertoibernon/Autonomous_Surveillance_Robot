@@ -7,8 +7,8 @@ function coordenadasCartesianas = polaresACartesianas(coordenadasPolares)
     theta = coordenadasPolares(2,:);
 
     % Convertir a coordenadas cartesianas
-    x = r .* cos(theta-2.35619);
-    y = r .* sin(theta-2.35619);
+    x = r.*cos(theta); % offset = 135 deg
+    y = r.*sin(theta); % offset = 135 deg
 
     % Combinar las coordenadas x e y en una matriz de coordenadas cartesianas
     coordenadasCartesianas = cat(1,x,y);
