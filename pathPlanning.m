@@ -5,7 +5,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Configuration Parameters
-path_map_fig = './plano_1.jpg';
+path_map_fig = './maps/plano_1.jpg';
 threshold = 0.1; % decide between free or obs
 scale = 10; % resolution grid
 side = 40;
