@@ -8,9 +8,10 @@
 path_map_fig = './plano_1.jpg';
 threshold = 0.1; % decide between free or obs
 scale = 10; % resolution grid
+side = 40;
 
 %% Load an image, process it and convert it to binary occupancy map.
-map = generateMap(path_map_fig, threshold, scale);
+map = generateMap(path_map_fig, threshold, scale, side);
 
 %% Define a start and goal poses.
 start = [2, 2, 1.5707];
