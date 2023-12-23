@@ -31,42 +31,34 @@ def parse_xml(file_path):
     coords=[]
     
     # Crear una figura y ejes
-    for linewidth_ in range(6,13):
-        for i in range(len(vertex_values)):
-            x1=0
-            y1=0
-            x2=0
-            y2=0
-            if(orientation_values[i] == 0): #vertical
-                x1=position_values[i][0][0]
-                y1=position_values[i][0][1]
-                y2=vertex_values[i]+position_values[i][0][1]
-                x2=position_values[i][0][0]
-            elif (orientation_values[i] == -1.57): #horizontal
-                x1=position_values[i][0][0]
-                y1=position_values[i][0][1]
-                x2=vertex_values[i]+position_values[i][0][0]
-                y2=position_values[i][0][1]
-            else:
-                x1=position_values[i][0][0]
-                y1=position_values[i][0][1]
-                x2=40
-                y2=25
-            coords.append([x1,y1,x2,y2])   
-            # Mostrar la gráfica
-            # Graficar los dos puntos
-            # ax.scatter([x1, x2], [y1, y2], color='red', label='Puntos')
-            # Dibujar la recta entre los dos puntos
-            ax.plot([x1, x2], [y1, y2], color='blue', linestyle='-', linewidth=linewidth_, label='Recta')
-        # plt.show()
-            # Removing axis and labels
-        ax.axis('off')
-
-        # Set aspect ratio to make the plot square
-        ax.set_aspect('equal')
-
-        fig.savefig('map_size_' + str(linewidth_) + '.png', bbox_inches='tight', pad_inches=-0.33, dpi=600)  # Save without extra whitespace
-    # fig.savefig('my_plot.png')
+    fig, ax = plt.subplots()
+    for i in range(len(vertex_values)):
+        x1=0
+        y1=0
+        x2=0
+        y2=0
+        if(orientation_values[i] == 0): #vertical
+            x1=position_values[i][0][0]
+            y1=position_values[i][0][1]
+            y2=vertex_values[i]+position_values[i][0][1]
+            x2=position_values[i][0][0]
+        elif (orientation_values[i] == -1.57): #horizontal
+            x1=position_values[i][0][0]
+            y1=position_values[i][0][1]
+            x2=vertex_values[i]+position_values[i][0][0]
+            y2=position_values[i][0][1]
+        else:
+            x1=position_values[i][0][0]
+            y1=position_values[i][0][1]
+            x2=40
+            y2=25
+        coords.append([x1,y1,x2,y2])   
+        # Mostrar la gráfica
+        # Graficar los dos puntos
+        ax.scatter([x1, x2], [y1, y2], color='red', label='Puntos')
+        # Dibujar la recta entre los dos puntos
+        ax.plot([x1, x2], [y1, y2], color='blue', linestyle='-', linewidth=2, label='Recta')
+        plt.show()
     return coords
     
     
@@ -85,12 +77,12 @@ def main():
     df = df.iloc[1:]
     
     # Especificar la ruta del archivo Excel
-    #archivo_excel = 'mapa.xlsx'
+    archivo_excel = 'mapa.xlsx'
     
     # Guardar el DataFrame en un archivo de Excel
-    #df.to_excel(archivo_excel, index=False)
+    df.to_excel(archivo_excel, index=False)
     
-    #print(f"Archivo Excel '{archivo_excel}' generado exitosamente.")
+    print(f"Archivo Excel '{archivo_excel}' generado exitosamente.")
     
 
 if __name__ == "__main__":

@@ -1,11 +1,14 @@
 function output = get_distance(punto,p1,p2)
 
-    distancia_limite1 = norm(punto - p1);
-    distancia_limite2 = norm(punto - p2);
-    limite_s_x = max(p1(1),p2(1));
-    limite_s_y = max(p1(2),p2(2));
-    limite_i_x = min(p1(1),p2(1));
-    limite_i_y = min(p1(2),p2(2));
+    % distancia_limite1 = norm(punto - p1);
+    % distancia_limite2 = norm(punto - p2);
+    % limite_s_x = max(p1(1),p2(1));
+    % limite_s_y = max(p1(2),p2(2));
+    % limite_i_x = min(p1(1),p2(1));
+    % limite_i_y = min(p1(2),p2(2));
+    limite_superior = 0.5;
+    limite_inferior = -0.5;
+    cuadrante=0;
 
     % Calcular la distancia entre el robot y la recta del ransac 
     x1 = p1(1);
@@ -51,6 +54,23 @@ function output = get_distance(punto,p1,p2)
     else
         angulo=abs(angulo);
     end
-
-    output=[distancia_ideal,final,angulo];
+    % Selección por cuadrantes
+    x_relativo = final(1)-punto(1);
+    y_relativo = final(2)-punto(2);
+    if x_relativo<limite_superior && x_relativo>limite_inferior && y_relativo>0
+        % Cuadrante de arriba
+        cuadrante = 1;
+    elseif y_relativo<limite_superior && y_relativo>limite_inferior && x_relativo>0
+        % Cuadrante de la derecha
+        cuadrante = 4;
+    elseif y_relativo<limite_superior && y_relativo>limite_inferior && x_relativo<0
+        % Cuadrante de la izquierda
+        cuadrante = 2;
+    elseif x_relativo<limite_superior && x_relativo>limite_inferior && y_relativo<0
+        % Cuadrante de abajo
+        cuadrante = 3;
+    else
+        cuadrante = 0;
+    end
+    output=[distancia_ideal,final,angulo,cuadrante,A,B,C];
 end

@@ -8,8 +8,9 @@ global time_i
 robot = 'Marvin';
 laser = 'LMS100';
 
-time_step       = 0.1;
-simulation_time = 75;
+time_step       = 0.05;
+%time_step       = 0.5;
+simulation_time =89;
 giro=0;
 mapa = importdata('mapa.xlsx');
 
@@ -22,11 +23,11 @@ Pk = [Pxini 0 0; 0 Pyini 0 ; 0 0 Pthetaini];
 % Varianza del ruido del proceso
 QL=1.0312e-05;
 QG=1.955e-05;
+
 Qk_1 =[QL 0;0 QG];
 
 % Varianza del lidar
-%R = 1.0125e-02;
-R = 0.01;
+R = 0.001;
 
 % Inicialización
 init(robot)
@@ -63,7 +64,7 @@ while true
     coords=cat(1,lidar_mes_i,t);
     % Generar el array de ángulos
     %lidar_mes_i
-    cart=polaresACartesianas(coords);
+    cart=polaresACartesianas(coords,pos_real_i(4));
     %Para fijar eje:
     % cart(1, :)=cart(1, :)+odometry_mes_i(1);
     % cart(2, :)=cart(2, :)+odometry_mes_i(2);
@@ -75,19 +76,17 @@ while true
 
     %% Nuevo ciclo, k-1 = k.
     
-    Uk=speeds*time_step;
-    Xk_est = [(Xk_est(1) + Uk(1)*cos(Xk_est(3)+(Uk(2)/2)));
-           (Xk_est(2) + Uk(1)*sin(Xk_est(3)+(Uk(2)/2)));
-           (Xk_est(3) + Uk(2))];
-
-    X_pre=[X_pre;Xk_est'];
+    %Uk=speeds*time_step;
+    
     Xk_1 = Xk;
     Pk_1 = Pk;
-    
+
+    Uk = [sqrt((Xk_1(1)-odometry_mes_i(1))^2+(Xk_1(2)-odometry_mes_i(2))^2);odometry_mes_i(3)-Xk_1(3)];
     % Prediccion del estado
     X_k = [(Xk_1(1) + Uk(1)*cos(Xk_1(3)+(Uk(2)/2)));
            (Xk_1(2) + Uk(1)*sin(Xk_1(3)+(Uk(2)/2)));
            (Xk_1(3) + Uk(2))];
+
     Ak = [1 0 (-Uk(1)*sin(Xk_1(3)+Uk(2)/2));
           0 1 (Uk(1)*cos(Xk_1(3)+Uk(2)/2));
           0 0 1                             ];
@@ -97,12 +96,11 @@ while true
     P_k = Ak*Pk_1*((Ak)') + Bk*Qk_1*((Bk)');
 
     %Observación, predicción e innoviación
-    [dist_real,ang_real]=navegacion(cart');
-    [matches,H]=matching(mapa,dist_real,ang_real,[X_k(1) X_k(2)]);
+    [dist_real,ang_real,cuadrantes,puntos_inter,rectas]=navegacion(cart');
+    [matches,H]=matching(mapa,dist_real,ang_real,[X_k(1) X_k(2)],cuadrantes,puntos_inter,rectas);
     if isempty(matches)
         Xk = X_k;
         Pk = P_k;
-        
     else
         a=size(H);
         Rk=eye(a(1))*(R);
@@ -111,13 +109,10 @@ while true
         % Distancia de mahalonobis
         Yk=[];
         Hk=[];
-        for j=1:length(matches)
-            m=matches(j)*inv(Sk)*matches(j);
-            dist=m(j,j);
-            if(dist<0.0039)
-                Yk=[Yk;matches(j)];
-                Hk=cat(1,Hk,H(j,:));
-            end
+        dist=matches*inv(Sk)*matches';
+        if(dist<2.706)
+            Yk=matches';
+            Hk=H;
         end
         Hk
         a=size(Hk);
@@ -125,16 +120,15 @@ while true
             Xk = X_k;
             Pk = P_k;
         else
-        Rk=eye(a(1))*(R);
-        Sk = Hk*P_k*((Hk)') + Rk;
-        Wk = P_k*((Hk)')*inv(Sk);
-    
-        % Correccion
-        Xk = X_k + Wk*Yk;
-        Pk = (eye(3)-Wk*Hk)*P_k;
-        correccion= Wk*Yk;
+            Rk=eye(a(1))*(R);
+            Sk = Hk*P_k*((Hk)') + Rk;
+            Wk = P_k*((Hk)')*inv(Sk);
+        
+            % Correccion
+            Xk = X_k + Wk*Yk;
+            Pk = P_k - Wk*Sk*Wk';
+            correccion = Wk*Yk;
         end
-
     end
     P_valores=[Pk(1,1),Pk(2,2),Pk(3,3)];
     e=[Xk(1)-pos_real_i(1);Xk(2)-pos_real_i(2);Xk(3)-pos_real_i(4)]
@@ -143,17 +137,17 @@ while true
 
     %% Almacenar variables
     [time,pos_real,odometry_mes,odometry_cor,P_acumulado,C_acumulado] = acumular(time,pos_real,odometry_mes,odometry_cor,P_acumulado, C_acumulado,pos_real_i,odometry_mes_i,Xk',P_valores,correccion');
+    
+    % plot(time,e_acumulado(:,1)); 
+    % hold on;
+    % grid on;
+    % plot(time,e_acumulado(:,2)); 
+    % % plot(time,e_acumulado(:,3)); 
+    % legend('ex','ey','etheta')
 
     %% Actualizar bucle
     apoloUpdate();
-    p=size(muestra);
-    if p(1)>50
-        while p(1)>50
-            muestra(1,:)=[];
-            p=size(muestra);
-        end
-    end
-    % apoloResetOdometry(robot,pos_real_i(1:3));
+    apoloResetOdometry(robot,[Xk(1) Xk(2) Xk(3)]);
     % apoloResetOdometry(robot,[0 0 0]);
     pause(time_step/2);
     setTime(time_step);
@@ -164,23 +158,23 @@ end
 
 %plot
 figure()
-plot(time,pos_real(:,1)); 
+plot(pos_real(:,1),pos_real(:,2)); 
 hold on;
 grid on;
-plot(time,odometry_cor(:,1));
-plot(time,odometry_mes(:,1));
+plot(odometry_cor(:,1),odometry_cor(:,2));
+plot(odometry_mes(:,1),odometry_mes(:,2));
 xlabel('time (s)');
 ylabel('x (m)');
 title('x');
 legend('real','ekf','odometry')
 
-% figure()
-% plot(time,P_acumulado(:,1)); 
-% hold on;
-% grid on;
-% plot(time,P_acumulado(:,2)); 
-% plot(time,P_acumulado(:,3)); 
-% legend('Px','Py','Ptheta')
+figure()
+plot(time,P_acumulado(:,1)); 
+hold on;
+grid on;
+plot(time,P_acumulado(:,2)); 
+plot(time,P_acumulado(:,3)); 
+legend('Px','Py','Ptheta')
 
 figure()
 plot(time,e_acumulado(:,1)); 

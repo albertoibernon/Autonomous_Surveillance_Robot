@@ -505,7 +505,7 @@
 		
 		<LMS100Sim name="LMS100" id="6" linkTo="$Marvin$">
 			<position>
-				{0.1,0,0.4}
+				{0,0,0.4}
 			</position>
 			<colour r="0" g="1" b="0"/>
 		</LMS100Sim>

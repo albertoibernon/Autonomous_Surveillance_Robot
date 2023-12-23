@@ -1,13 +1,13 @@
-function [dist_real,ang_real]=navegacion(points)
+function [dist_real,ang_real,cuadrantes,puntos_inter,rectas]=navegacion(points)
 
 %maxClusters=10; %Máxima cantidad de paredes que se prevee detectar a la vez
-Radio=19.5; %20 metros 
+Radio=19.9; %20 metros 
 
 % Parámetros de RANSAC
-numIteraciones = 100;  % Número de iteraciones de RANSAC
-sampleSize = 3; % number of points to sample per trial
-maxDistance=0.02;
-min_num_points=5;
+numIteraciones = 500;  % Número de iteraciones de RANSAC
+sampleSize = 2; % number of points to sample per trial
+maxDistance=0.01;
+min_num_points=10;
 
 points_aux=points;
 counter=0;
@@ -68,6 +68,9 @@ end
 
 dist_real=[];
 ang_real=[];
+cuadrantes=[];
+puntos_inter=[];
+rectas=[];
 num_recta=0;
 for j=1:length(clusters)
     clus=clusters{j};
@@ -84,12 +87,15 @@ for j=1:length(clusters)
                 inlierPts = clus(inlierIdx,:);
                 p1 = cat(2,inlierPts(1,1),inlierPts(1,2));
                 p2 = cat(2,inlierPts(end,1),inlierPts(end,2));
-                % x = [min(inlierPts(:,1)) max(inlierPts(:,1))];
-                % y = modelInliers(1)*x + modelInliers(2); %definción de la recta
+                x = [min(inlierPts(:,1)) max(inlierPts(:,1))];
+                y = modelInliers(1)*x + modelInliers(2); %definción de la recta
                 value = get_distance([0 0], p1, p2);
                 dist_real=[dist_real,value(1)];
                 ang_real=[ang_real,value(4)];
-                % num_recta=num_recta+1;
+                cuadrantes = [cuadrantes,value(5)];
+                puntos_inter = [puntos_inter; [value(2),value(3)]];
+                rectas = [rectas; [value(6),value(7),value(8)]];
+                num_recta=num_recta+1;
                 % plot(x, y);
                 % hold on
                 % plot([0 value(2)],[0 value(3)]);
@@ -109,5 +115,4 @@ for j=1:length(clusters)
     end
 end
 % clf
-
 end
