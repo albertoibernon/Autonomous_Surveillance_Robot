@@ -77,6 +77,9 @@ while true
     % Obteción de las medidas del laser
     laser = apoloGetLaserLandMarks('LMS100');
     Zk_=[]; 
+    Zk = [];
+    Hk=[];
+    Vec=[];
 
     % Se calcula la estimación para las balizas que se ven
     if isempty(laser.id)
@@ -85,45 +88,43 @@ while true
     else
         for i=1:length(laser.id)
 
-            ID=laser.id(i)
-            Zk_ = [ sqrt((balizas(laser.id(i),1)-Xk_1(1))^2+(balizas(laser.id(i),2)-Xk_1(2))^2);
+            ID=laser.id(i);
+            Zk_ = [Zk_ ;sqrt((balizas(laser.id(i),1)-Xk_1(1))^2+(balizas(laser.id(i),2)-Xk_1(2))^2);
                     atan2(balizas(laser.id(i),2)-Xk_1(2),balizas(laser.id(i),1)-Xk_1(1))-Xk_1(3)];
 
-            Zk = [laser.distance(i);laser.angle(i)];
+            Zk = [Zk;laser.distance(i);laser.angle(i)];
 
             % Jacobiana de la matriz de observación
-            Hk=[];
-            Hk=[-((balizas(laser.id(i),1))-X_k(1))/(sqrt((balizas(laser.id(i),1)-Xk_1(1))^2+ (balizas(laser.id(i),2)-Xk_1(2))^2)) -((balizas(laser.id(i),2))-X_k(2))/(sqrt((balizas(laser.id(i),1)-Xk_1(1))^2+ (balizas(laser.id(i),2)-Xk_1(2))^2)) 0;   
-            ((balizas(laser.id(i),2)-X_k(2))/((balizas(laser.id(i),1)-X_k(1))^2+(balizas(laser.id(i),2)-X_k(2))^2)) (-(balizas(laser.id(i),1)-X_k(1))/((balizas(laser.id(i),1)-X_k(1))^2+(balizas(laser.id(i),2)-X_k(2))^2)) -1];
-        
-            %Innovacion
-            Yk=Zk-Zk_;
             
-            if Yk(2,1)>pi
-                Yk(2,1) = Yk(2,1) - 2*pi;
-            end
-            if Yk(2,1)<(-pi)
-                Yk(2,1) = Yk(2,1) + 2*pi;
-            end
+            Hk=[Hk;-((balizas(laser.id(i),1))-X_k(1))/(sqrt((balizas(laser.id(i),1)-Xk_1(1))^2+ (balizas(laser.id(i),2)-Xk_1(2))^2)) -((balizas(laser.id(i),2))-X_k(2))/(sqrt((balizas(laser.id(i),1)-Xk_1(1))^2+ (balizas(laser.id(i),2)-Xk_1(2))^2)) 0;   
+            ((balizas(laser.id(i),2)-X_k(2))/((balizas(laser.id(i),1)-X_k(1))^2+(balizas(laser.id(i),2)-X_k(2))^2)) (-(balizas(laser.id(i),1)-X_k(1))/((balizas(laser.id(i),1)-X_k(1))^2+(balizas(laser.id(i),2)-X_k(2))^2)) -1];
+        end
 
-            Rk = [vdist 0;
-                  0 vang];
 
+        % Comparacion
+        Yk = Zk-Zk_;
+        a=size(Yk)/2;
+
+        if(a==0)
+            Xk = X_k;
+            Pk = P_k;
+        else
+            for r=1:a(1,1)
+                if Yk(r*2)>pi
+                    Yk(r*2) = Yk(r*2) - 2*pi;
+                end
+                if Yk(r*2)<(-pi)
+                    Yk(r*2) = Yk(r*2) + 2*pi;
+                end
+            end
+            for h=1:a
+                Vec=[Vec vdist vang];
+            end
+            Rk = diag(Vec);
             Sk = Hk*P_k*((Hk)') + Rk;
-
-            % %Distancia de mahalanobis
-            % dist = Yk'*inv(Sk)*Yk;
-            %     if dist< 0.1026
-                %Ganancia de kalman
-                Wk = P_k*((Hk)')*inv(Sk);
-                Xk = X_k + Wk*Yk;
-                Pk = P_k-Wk*Hk*P_k;
-                % else
-                %     Pk=P_k;
-                %     Xk=X_k;
-                % end
-                Xk_1 = Xk;
-                Pk_1 = Pk;
+            Wk = P_k*((Hk)')*inv(Sk);
+            Xk = X_k + Wk*Yk;
+            Pk = P_k-Wk*Hk*P_k;
         end
     end
     P_valores=[Pk(1,1),Pk(2,2),Pk(3,3)];
