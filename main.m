@@ -13,6 +13,7 @@ time_step       = 0.05;
 simulation_time =89;
 giro=0;
 mapa = importdata('mapa.xlsx');
+balizas = importdata('mapa_balizas.xlsx');
 
 % Definimos las varianzas
 Pxini = 0.01;
@@ -28,6 +29,8 @@ Qk_1 =[QL 0;0 QG];
 
 % Varianza del lidar
 R = 0.001;
+vdist = 1.4481e-05;
+vang = 4.7432e-05;
 
 % Inicialización
 init(robot)
@@ -50,38 +53,14 @@ while true
 
     %% Odometría (Sensores Propioceptivos)
     odometry_mes_i = apoloGetOdometry(robot); % [x,y,theta] [m,rad]
-    
-    %% Percepción (Sensores Exteroceptivos)
-    lidar_mes_i = apoloGetLaserData(laser);
-
-    %% Navegación
-    b=size(lidar_mes_i);
-    t = 1:b(2);% t = 1:539
-    t = t*(((1.5*pi))/b(2));% t*(270º/539 puntos)
-    % Para fijar eje:
-    % giro=giro+odometry_mes_i(3);
-    % t=t+giro;
-    coords=cat(1,lidar_mes_i,t);
-    % Generar el array de ángulos
-    %lidar_mes_i
-    cart=polaresACartesianas(coords,pos_real_i(4));
-    %Para fijar eje:
-    % cart(1, :)=cart(1, :)+odometry_mes_i(1);
-    % cart(2, :)=cart(2, :)+odometry_mes_i(2);
-    % coordenadasX = cart(1, :)+odometry_mes_i(1);
-    % coordenadasY = cart(2, :)+odometry_mes_i(2);
-    
-    % Plotear los puntos
-    %plot(coordenadasX, coordenadasY, 'o');
 
     %% Nuevo ciclo, k-1 = k.
-    
-    %Uk=speeds*time_step;
     
     Xk_1 = Xk;
     Pk_1 = Pk;
 
     Uk = [sqrt((Xk_1(1)-odometry_mes_i(1))^2+(Xk_1(2)-odometry_mes_i(2))^2);odometry_mes_i(3)-Xk_1(3)];
+    
     % Prediccion del estado
     X_k = [(Xk_1(1) + Uk(1)*cos(Xk_1(3)+(Uk(2)/2)));
            (Xk_1(2) + Uk(1)*sin(Xk_1(3)+(Uk(2)/2)));
@@ -95,39 +74,56 @@ while true
            0                     1                                 ];
     P_k = Ak*Pk_1*((Ak)') + Bk*Qk_1*((Bk)');
 
-    %Observación, predicción e innoviación
-    [dist_real,ang_real,cuadrantes,puntos_inter,rectas]=navegacion(cart');
-    [matches,H]=matching(mapa,dist_real,ang_real,[X_k(1) X_k(2)],cuadrantes,puntos_inter,rectas);
-    if isempty(matches)
-        Xk = X_k;
-        Pk = P_k;
-    else
-        a=size(H);
-        Rk=eye(a(1))*(R);
-        Sk = H*P_k*((H)') + Rk;
+    % Obteción de las medidas del laser
+    laser = apoloGetLaserLandMarks('LMS100');
+    Zk_=[]; 
 
-        % Distancia de mahalonobis
-        Yk=[];
-        Hk=[];
-        dist=matches*inv(Sk)*matches';
-        if(dist<2.706)
-            Yk=matches';
-            Hk=H;
-        end
-        Hk
-        a=size(Hk);
-        if a==0
-            Xk = X_k;
-            Pk = P_k;
-        else
-            Rk=eye(a(1))*(R);
-            Sk = Hk*P_k*((Hk)') + Rk;
-            Wk = P_k*((Hk)')*inv(Sk);
+    % Se calcula la estimación para las balizas que se ven
+    if isempty(laser.id)
+        Pk=P_k;
+        Xk=X_k;
+    else
+        for i=1:length(laser.id)
+
+            ID=laser.id(i)
+            Zk_ = [ sqrt((balizas(laser.id(i),1)-Xk_1(1))^2+(balizas(laser.id(i),2)-Xk_1(2))^2);
+                    atan2(balizas(laser.id(i),2)-Xk_1(2),balizas(laser.id(i),1)-Xk_1(1))-Xk_1(3)];
+
+            Zk = [laser.distance(i);laser.angle(i)];
+
+            % Jacobiana de la matriz de observación
+            Hk=[];
+            Hk=[-((balizas(laser.id(i),1))-X_k(1))/(sqrt((balizas(laser.id(i),1)-Xk_1(1))^2+ (balizas(laser.id(i),2)-Xk_1(2))^2)) -((balizas(laser.id(i),2))-X_k(2))/(sqrt((balizas(laser.id(i),1)-Xk_1(1))^2+ (balizas(laser.id(i),2)-Xk_1(2))^2)) 0;   
+            ((balizas(laser.id(i),2)-X_k(2))/((balizas(laser.id(i),1)-X_k(1))^2+(balizas(laser.id(i),2)-X_k(2))^2)) (-(balizas(laser.id(i),1)-X_k(1))/((balizas(laser.id(i),1)-X_k(1))^2+(balizas(laser.id(i),2)-X_k(2))^2)) -1];
         
-            % Correccion
-            Xk = X_k + Wk*Yk;
-            Pk = P_k - Wk*Sk*Wk';
-            correccion = Wk*Yk;
+            %Innovacion
+            Yk=Zk-Zk_;
+            
+            if Yk(2,1)>pi
+                Yk(2,1) = Yk(2,1) - 2*pi;
+            end
+            if Yk(2,1)<(-pi)
+                Yk(2,1) = Yk(2,1) + 2*pi;
+            end
+
+            Rk = [vdist 0;
+                  0 vang];
+
+            Sk = Hk*P_k*((Hk)') + Rk;
+
+            % %Distancia de mahalanobis
+            % dist = Yk'*inv(Sk)*Yk;
+            %     if dist< 0.1026
+                %Ganancia de kalman
+                Wk = P_k*((Hk)')*inv(Sk);
+                Xk = X_k + Wk*Yk;
+                Pk = P_k-Wk*Hk*P_k;
+                % else
+                %     Pk=P_k;
+                %     Xk=X_k;
+                % end
+                Xk_1 = Xk;
+                Pk_1 = Pk;
         end
     end
     P_valores=[Pk(1,1),Pk(2,2),Pk(3,3)];
@@ -137,18 +133,10 @@ while true
 
     %% Almacenar variables
     [time,pos_real,odometry_mes,odometry_cor,P_acumulado,C_acumulado] = acumular(time,pos_real,odometry_mes,odometry_cor,P_acumulado, C_acumulado,pos_real_i,odometry_mes_i,Xk',P_valores,correccion');
-    
-    % plot(time,e_acumulado(:,1)); 
-    % hold on;
-    % grid on;
-    % plot(time,e_acumulado(:,2)); 
-    % % plot(time,e_acumulado(:,3)); 
-    % legend('ex','ey','etheta')
 
     %% Actualizar bucle
     apoloUpdate();
     apoloResetOdometry(robot,[Xk(1) Xk(2) Xk(3)]);
-    % apoloResetOdometry(robot,[0 0 0]);
     pause(time_step/2);
     setTime(time_step);
     if time_i > simulation_time
