@@ -637,7 +637,7 @@
 		</LandMark>
 		<LandMark mark_id="20" name="LM20" id="43">
 			<position>
-				{24.95,14.95,0.2}
+				{24.95,15.05,0.2}
 			</position>
 		</LandMark>
 		<LandMark mark_id="21" name="LM21" id="44">
@@ -662,7 +662,7 @@
 		</LandMark>
 		<LandMark mark_id="25" name="LM25" id="48">
 			<position>
-				{25.05,15.05,0.2}
+				{25.05,14.95,0.2}
 			</position>
 		</LandMark>
 		<LandMark mark_id="26" name="LM26" id="49">
@@ -672,7 +672,7 @@
 		</LandMark>
 		<LandMark mark_id="27" name="LM27" id="50">
 			<position>
-				{30,7.55,0.2}
+				{32.5,12.55,0.2}
 			</position>
 		</LandMark>
 		<LandMark mark_id="28" name="LM28" id="27">
@@ -682,7 +682,7 @@
 		</LandMark>
 		<LandMark mark_id="29" name="LM29" id="51">
 			<position>
-				{10,7.5,0.2}
+				{7.5,12.5,0.2}
 			</position>
 		</LandMark>
 		<LandMark mark_id="30" name="LM30" id="52">
