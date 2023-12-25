@@ -31,6 +31,7 @@ function [matches,H]=matching(mapa,dist_real,ang_real,pos,cuadrantes,puntos_inte
     % clf
     diffDistancias = zeros(length(dist_real), length(dist_est))+99;
     diffAngulos = zeros(length(dist_real), length(dist_est))+99;
+    diffmatches = zeros(length(dist_real), length(dist_est));
     % dist_real
     % dist_est
     % ang_est
@@ -39,9 +40,10 @@ function [matches,H]=matching(mapa,dist_real,ang_real,pos,cuadrantes,puntos_inte
     % Calcular las diferencias entre distancias y ángulos
     for i = 1:length(dist_real)
         for j = 1:length(dist_est)
-            if cuadrantes(i)-cuad_est(j)==0
+            if cuadrantes(i)-cuad_est(j)==0 && cuad_est(j)~=0
                 diffAngulos(i, j) =  abs(ang_real(i) - ang_est(j));
                 diffDistancias(i, j) = abs(dist_real(i) - dist_est(j));
+                diffmatches(i, j) = dist_real(i) - dist_est(j);
             end
         end
     end
@@ -57,8 +59,8 @@ function [matches,H]=matching(mapa,dist_real,ang_real,pos,cuadrantes,puntos_inte
     for i=1:b(1)
         fila=diffDistancias(i,:);
         [match,I]=min(fila);
+        match=diffmatches(i,I);
         error_angulo=diffAngulos(i,I);
-
         if(error_angulo < margen_angulo)
             %todosmatches=[todosmatches,match];
             %numeracion=[numeracion,j];
