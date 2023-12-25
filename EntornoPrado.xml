@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <root>
 	<World>
+		<WorldInfo name="Robotic Navigation Strategies for a Nocturnal Surveillance Application">
+			<RegisterNumber number="17048"/>
+			<RegisterNumber number="23079"/>
+			<RegisterNumber number="23147"/>
+		</WorldInfo>
 		<FaceSetPart name="ground" id="0">
 			<colour r="0" g="0" b="255"/>
 			<face>
