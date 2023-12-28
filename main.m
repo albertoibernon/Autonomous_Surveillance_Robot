@@ -4,166 +4,168 @@ close all; clear; clc;
 addpath(genpath('C:\Program Files\Apolo'))
 
 % Configuración
-global time_i
-robot = 'Marvin';
-laser = 'LMS100';
-
-time_step       = 0.05;
-%time_step       = 0.5;
-simulation_time =89;
-giro=0;
-mapa = importdata('mapa.xlsx');
+global integralState
+robot   = 'Marvin';
+laser   = 'LMS100';
+mapa    = importdata('mapa.xlsx');
 balizas = importdata('mapa_balizas.xlsx');
 
-% Definimos las varianzas
-Pxini = 0.01;
-Pyini = 0.01;
-Pthetaini = 0.01;
-Pk = [Pxini 0 0; 0 Pyini 0 ; 0 0 Pthetaini];
+%% Inicialización
+pose_init = [1, 1, 0];  % Pose inicial  [x, y, orientación] [m, m, rad]
+pose_goal = [8, 27, 0]; % Pose objetivo [x, y, orientación] [m, m, rad]
+time_step = 0.1;        % [s]
+pos_init  = init(robot,pose_init);
 
 % Varianza del ruido del proceso
-QL=1.0312e-05;
-QG=1.955e-05;
+QL   = 1.0312e-05;
+QG   = 1.955e-05;
+Qk_1 = [QL 0;0 QG];
 
-Qk_1 =[QL 0;0 QG];
+% Varianza del ruido del lidar
+R     = 9.62014799313916e-02;
+vdist = 1.4481e-04;
+vang  = 4.7432e-04;
 
-% Varianza del lidar
-R = 0.001;
-vdist = 1.4481e-05;
-vang = 4.7432e-05;
+% Matriz de varianzas de la estimación
+Pxini     = 0.01;
+Pyini     = 0.01;
+Pthetaini = 0.01;
+Pk        = [Pxini 0 0; 0 Pyini 0 ; 0 0 Pthetaini];
 
-% Inicialización
-init(robot)
-time = []; pos_real = []; odometry_mes = []; lidar_mes = []; odometry_cor=[]; P_acumulado = []; C_acumulado=[];
-X_pre=[];
-muestra=[0.02; 0.02; 0.02; 0.02; 0.02; 0.02; 0.02; 0.02];
-location= apoloGetLocationMRobot(robot);
-correccion=[0;0;0];
-Xk=[location(1);location(2);location(4)];
-Xk_est=[location(1);location(2);location(4)];
-e_acumulado=[];
+% EKF
+Xk         = [pos_init(1) pos_init(2) pos_init(4)]'; % Estimación posición inicial
+correccion = [0;0;0];
 
-% Bucle de Simulación
+% Variables para almacenar
+time = []; pos_real = []; odometry_mes = []; lidar_mes = []; Xk_acumulado=Xk'; 
+P_acumulado = []; C_acumulado=[]; e_acumulado=[]; comando_acu = []; up_acu = []; 
+ui_acu = []; ud_acu = []; error_pos_acu = []; dist_sonic_left_acu = []; 
+dist_sonic_middle_acu = []; dist_sonic_right_acu = [];
+
+% Planificador Global
+[pathObj,planner] = planificador_global(pose_init,pose_goal);
+
+% Planificador Local
+jj = 2;
+planificador_local_flag = 0;
+
+%% Bucle de Simulación
 while true
-    %% Planificador
-    speeds = planificador; % [velocidad de avance, velocidad de rotación] [m/s,rad/s]
-    
-    %% DKE
-    pos_real_i = dke(robot,speeds,time_step); % [x,y,z,theta] [m,rad]
+
+    if planificador_local_flag == 0 % Para ejecutar la planificación local
+        % Finalizar simulación al completar la lista de waypoints de la planificación global
+        if jj > length(pathObj.States(:,1))
+            break;
+        end
+                
+        %% Planificador Local y Control Activo
+        [vel_comando, pthObj] = planificador_local(planner,Xk',pathObj.States(jj,:),time_step);
+        comando = vel_comando(1,:);
+        ii = 1; planificador_local_flag = 1; obstaculo_flag = 0; integralState = 0;
+        up = 0; ui = 0; ud = 0; error_pos = 0; dist_sonic = [0 0 0]; 
+
+    else % Cuando ya hay una planificación local cargada
+        %% Detección de Obstáculos y Control Reactivo
+        [comando,up,ui,ud,error_pos,dist_sonic,ii] = control_reactivo(vel_comando(ii,:),...
+         pthObj.States(ii+1,:),Xk_acumulado(end-1,:),Xk_acumulado(end,:),vel_comando,obstaculo_flag,ii);  
+    end
+
+    %% DKE (movimiento real del robot)
+    pos_real_i = dke(robot,comando,time_step); % [x,y,z,theta] [m,rad]
 
     %% Odometría (Sensores Propioceptivos)
     odometry_mes_i = apoloGetOdometry(robot); % [x,y,theta] [m,rad]
 
-    %% Nuevo ciclo, k-1 = k.
+    %% Navegación (Extended Kalman Filter)
+    [Xk,Pk,Vec] = navegacion(Xk,Pk,Qk_1,balizas,odometry_mes_i,vdist,vang);
     
-    Xk_1 = Xk;
-    Pk_1 = Pk;
+    P_valores   = [Pk(1,1),Pk(2,2),Pk(3,3)];
+    e           = [Xk(1)-pos_real_i(1);Xk(2)-pos_real_i(2);Xk(3)-pos_real_i(4)];
+    e_acumulado = [e_acumulado; e'];
 
-    Uk = [sqrt((Xk_1(1)-odometry_mes_i(1))^2+(Xk_1(2)-odometry_mes_i(2))^2);odometry_mes_i(3)-Xk_1(3)];
-    
-    % Prediccion del estado
-    X_k = [(Xk_1(1) + Uk(1)*cos(Xk_1(3)+(Uk(2)/2)));
-           (Xk_1(2) + Uk(1)*sin(Xk_1(3)+(Uk(2)/2)));
-           (Xk_1(3) + Uk(2))];
-
-    Ak = [1 0 (-Uk(1)*sin(Xk_1(3)+Uk(2)/2));
-          0 1 (Uk(1)*cos(Xk_1(3)+Uk(2)/2));
-          0 0 1                             ];
-    Bk = [(cos(Xk_1(3)+Uk(2)/2)) (-0.5*Uk(1)*sin(Xk_1(3)+Uk(2)/2));
-          (sin(Xk_1(3)+Uk(2)/2)) (0.5*Uk(1)*cos(Xk_1(3)+Uk(2)/2));
-           0                     1                                 ];
-    P_k = Ak*Pk_1*((Ak)') + Bk*Qk_1*((Bk)');
-
-    % Obteción de las medidas del laser
-    laser = apoloGetLaserLandMarks('LMS100');
-    Zk_=[]; 
-    Zk = [];
-    Hk=[];
-    Vec=[];
-
-    % Se calcula la estimación para las balizas que se ven
-    if isempty(laser.id)
-        Pk=P_k;
-        Xk=X_k;
-    else
-        for i=1:length(laser.id)
-
-            ID=laser.id(i);
-            Zk_ = [Zk_ ;sqrt((balizas(laser.id(i),1)-Xk_1(1))^2+(balizas(laser.id(i),2)-Xk_1(2))^2);
-                    atan2(balizas(laser.id(i),2)-Xk_1(2),balizas(laser.id(i),1)-Xk_1(1))-Xk_1(3)];
-
-            Zk = [Zk;laser.distance(i);laser.angle(i)];
-
-            % Jacobiana de la matriz de observación
-            
-            Hk=[Hk;-((balizas(laser.id(i),1))-X_k(1))/(sqrt((balizas(laser.id(i),1)-Xk_1(1))^2+ (balizas(laser.id(i),2)-Xk_1(2))^2)) -((balizas(laser.id(i),2))-X_k(2))/(sqrt((balizas(laser.id(i),1)-Xk_1(1))^2+ (balizas(laser.id(i),2)-Xk_1(2))^2)) 0;   
-            ((balizas(laser.id(i),2)-X_k(2))/((balizas(laser.id(i),1)-X_k(1))^2+(balizas(laser.id(i),2)-X_k(2))^2)) (-(balizas(laser.id(i),1)-X_k(1))/((balizas(laser.id(i),1)-X_k(1))^2+(balizas(laser.id(i),2)-X_k(2))^2)) -1];
-        end
-
-
-        % Comparacion
-        Yk = Zk-Zk_;
-        a=size(Yk)/2;
-
-        if(a==0)
-            Xk = X_k;
-            Pk = P_k;
-        else
-            for r=1:a(1,1)
-                if Yk(r*2)>pi
-                    Yk(r*2) = Yk(r*2) - 2*pi;
-                end
-                if Yk(r*2)<(-pi)
-                    Yk(r*2) = Yk(r*2) + 2*pi;
-                end
-            end
-            for h=1:a
-                Vec=[Vec vdist vang];
-            end
-            Rk = diag(Vec);
-            Sk = Hk*P_k*((Hk)') + Rk;
-            Wk = P_k*((Hk)')*inv(Sk);
-            Xk = X_k + Wk*Yk;
-            Pk = P_k-Wk*Hk*P_k;
-        end
-    end
-    P_valores=[Pk(1,1),Pk(2,2),Pk(3,3)];
-    e=[Xk(1)-pos_real_i(1);Xk(2)-pos_real_i(2);Xk(3)-pos_real_i(4)]
-    e_acumulado=[e_acumulado;e'];
-
+    % Plotear posición real (verde) y posición estimada (magenta)
+    figure(1)
+    plot(pos_real_i(1),pos_real_i(2),'g*',"MarkerSize",2)
+    plot(Xk(1),Xk(2),'m*',"MarkerSize",2)
 
     %% Almacenar variables
-    [time,pos_real,odometry_mes,odometry_cor,P_acumulado,C_acumulado] = acumular(time,pos_real,odometry_mes,odometry_cor,P_acumulado, C_acumulado,pos_real_i,odometry_mes_i,Xk',P_valores,correccion');
-
+    [time,pos_real,odometry_mes,Xk_acumulado,P_acumulado,C_acumulado,comando_acu,...
+     up_acu,ui_acu,ud_acu,error_pos_acu,dist_sonic_left_acu,dist_sonic_middle_acu,...
+     dist_sonic_right_acu] = acumular(time,pos_real,odometry_mes,Xk_acumulado,P_acumulado,...
+     C_acumulado,pos_real_i,odometry_mes_i,Xk',P_valores,correccion',comando_acu,up_acu,ui_acu,...
+     ud_acu,error_pos_acu,dist_sonic_left_acu,dist_sonic_middle_acu,dist_sonic_right_acu,...
+     comando(2),up,ui,ud,error_pos,dist_sonic);
+      
     %% Actualizar bucle
     apoloUpdate();
-    apoloResetOdometry(robot,[Xk(1) Xk(2) Xk(3)]);
-    pause(time_step/2);
+    apoloResetOdometry(robot,Xk');
+    % pause(time_step/2);
     setTime(time_step);
-    if time_i > simulation_time
-        break;
+
+    % Caso en el que se ha alcanzando el final de la planificación local y
+    % no se ha detectado obstáculo -> Selección del siguiente waypoint
+    if ii == length(vel_comando(:,1)) && obstaculo_flag == 0
+        planificador_local_flag = 0;
+        jj = jj + 1;
+        obstaculo_flag = 0;
+
+    % Caso en el que se ha alcanzando el final de la planificación local y
+    % se ha detectado obstáculo -> Selección del mismo waypoint
+    elseif ii == length(vel_comando(:,1)) && obstaculo_flag == 1
+        planificador_local_flag = 0;
+        obstaculo_flag = 0;
+
+    % Caso en el que no se ha alcanzado el final de la planificación local
+    % -> Siguiente comando del planificador local
+    else
+        ii = ii + 1;
     end
 end
 
-%plot
+%% Plotear gráficos
+figure()
+plot(time,dist_sonic_left_acu,'*');
+hold on;
+grid on;
+plot(time,dist_sonic_middle_acu,'*'); 
+plot(time,dist_sonic_right_acu,'*'); 
+legend('ultra izquierdo','ultra centro','ultra derecho')
+title('variables controlables')
+
+figure()
+plot(time,comando_acu); 
+hold on;
+grid on;
+plot(time,up_acu);
+plot(time,ui_acu); 
+plot(time,ud_acu); 
+legend('u','up','ui','ud')
+title('variables controlables')
+
+figure()
+plot(time,error_pos_acu); 
+hold on;
+grid on;
+title('Error')
+
 figure()
 plot(pos_real(:,1),pos_real(:,2)); 
 hold on;
 grid on;
-plot(odometry_cor(:,1),odometry_cor(:,2));
+plot(Xk_acumulado(:,1),Xk_acumulado(:,2));
 plot(odometry_mes(:,1),odometry_mes(:,2));
-xlabel('time (s)');
-ylabel('x (m)');
-title('x');
+xlabel('x (m)');
+ylabel('y (m)');
+title('Trayectoria');
 legend('real','ekf','odometry')
 
-figure()
-plot(time,P_acumulado(:,1)); 
-hold on;
-grid on;
-plot(time,P_acumulado(:,2)); 
-plot(time,P_acumulado(:,3)); 
-legend('Px','Py','Ptheta')
+% figure()
+% plot(time,P_acumulado(:,1)); 
+% hold on;
+% grid on;
+% plot(time,P_acumulado(:,2)); 
+% plot(time,P_acumulado(:,3)); 
+% legend('Px','Py','Ptheta')
 
 figure()
 plot(time,e_acumulado(:,1)); 
@@ -171,7 +173,7 @@ hold on;
 grid on;
 plot(time,e_acumulado(:,2)); 
 %plot(time,e_acumulado(:,3)); 
-legend('ex','ey','etheta')
+legend('ex','ey')
 
 % figure()
 % plot(time,C_acumulado(:,1)); 

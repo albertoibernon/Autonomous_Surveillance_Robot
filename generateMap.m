@@ -1,15 +1,19 @@
 function [map]  = generateMap(path, threshold, scale, side)
+    
+    %% Lectura de la imagen del mapa
+    image = imread(path);
 
+    %% Transformación a escala de grises
+    grayimage = rgb2gray(image);
 
-image = imread(path);
-%Convert image into grayscale.
-grayimage = rgb2gray(image);
-grayimage = imresize(grayimage, [side*scale, side*scale]);
-% imshow(grayimage);
+    %% Escalado del mapa
+    grayimage = imresize(grayimage, [side*scale, side*scale]);
+    
+    %% Transformación a imagen binaria
+    bwimage = 1 - double(grayimage)/255;
+    bwimage = bwimage > threshold;
 
-% Threshold  image in order to get a binary image.
-bwimage = 1 - double(grayimage)/255;
-bwimage = bwimage > threshold;
-% Convert image into  binaryOccupancyMap  with scale  (pixes/meter).
-map = binaryOccupancyMap(bwimage,scale);
+    %% Transformación de la imagen a un mapa de ocupación binaria
+    map = binaryOccupancyMap(bwimage,scale);
+    
 end
