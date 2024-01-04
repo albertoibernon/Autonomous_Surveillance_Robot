@@ -12,7 +12,7 @@ balizas = importdata('mapa_balizas.xlsx');
 
 %% Inicialización
 pose_init = [1, 1, 0];  % Pose inicial  [x, y, orientación] [m, m, rad]
-pose_goal = [8, 27, 0]; % Pose objetivo [x, y, orientación] [m, m, rad]
+pose_goal = [2, 27, 0]; % Pose objetivo [x, y, orientación] [m, m, rad]
 time_step = 0.1;        % [s]
 pos_init  = init(robot,pose_init);
 
@@ -122,6 +122,9 @@ while true
     end
 end
 
+figure(1);
+legend('RRT','Waypoint','Reference Pose','Real Pose','Estimated Pose')
+
 %% Plotear gráficos
 figure()
 plot(time,dist_sonic_left_acu,'*');
@@ -130,7 +133,7 @@ grid on;
 plot(time,dist_sonic_middle_acu,'*'); 
 plot(time,dist_sonic_right_acu,'*'); 
 legend('ultra izquierdo','ultra centro','ultra derecho')
-title('variables controlables')
+xlabel('Time (s)');ylabel('Distance (m)'); title('Ultrasonic sensor distance to walls and obstacles')
 
 figure()
 plot(time,comando_acu); 
@@ -139,14 +142,16 @@ grid on;
 plot(time,up_acu);
 plot(time,ui_acu); 
 plot(time,ud_acu); 
-legend('u','up','ui','ud')
-title('variables controlables')
+legend('Angular Velocity','Proportional','Integral','Derivative')
+title('Controller Contributions: Ang Velocity Command')
+xlabel('Time (s)');ylabel('Distance (m)');
 
 figure()
 plot(time,error_pos_acu); 
 hold on;
 grid on;
-title('Error')
+title('Absolute Position Error (Reference and Estimation)')
+xlabel('Time (s)');ylabel('Distance (m)');
 
 figure()
 plot(pos_real(:,1),pos_real(:,2)); 
@@ -159,13 +164,15 @@ ylabel('y (m)');
 title('Trayectoria');
 legend('real','ekf','odometry')
 
-% figure()
-% plot(time,P_acumulado(:,1)); 
-% hold on;
-% grid on;
-% plot(time,P_acumulado(:,2)); 
-% plot(time,P_acumulado(:,3)); 
-% legend('Px','Py','Ptheta')
+figure()
+plot(time,P_acumulado(:,1)); 
+hold on;
+grid on;
+plot(time,P_acumulado(:,2)); 
+plot(time,P_acumulado(:,3)); 
+legend('Px','Py','Ptheta')
+title('EKF Covariance')
+xlabel('Time (s)');
 
 figure()
 plot(time,e_acumulado(:,1)); 
@@ -174,6 +181,8 @@ grid on;
 plot(time,e_acumulado(:,2)); 
 %plot(time,e_acumulado(:,3)); 
 legend('ex','ey')
+title('EKF Performance: Position Error (Real VS Estimation)')
+xlabel('Time (s)');ylabel('Distance (m)');
 
 % figure()
 % plot(time,C_acumulado(:,1)); 
