@@ -1,0 +1,51 @@
+<root>
+  <World>
+	<!-- Students must put the whole number of their enrollment number below -->
+    <WorldInfo name="Exteroceptive sensors calibration environment">
+		<RegisterNumber number="17048"/>
+		<RegisterNumber number="23147"/>
+		<RegisterNumber number="23079"/>
+		
+	</WorldInfo>
+	<!-- definition of a room as a set of walls -->
+<FaceSetPart name="Sala Cuadrada 8x8">
+	<face>
+		<vertex>
+			{52.000000 , -1.000000, 0}
+			{52.000000 , 52.000000, 0}
+			{-1.000000 , 52.000000, 0}
+			{-1.000000 , -1.000000, 0}
+		</vertex>
+		<colour r="0.2" g="0.2" b="1"/>
+	</face>
+</FaceSetPart>
+<!-- definition of a Pioner3at robot, positioning and initial orientation-->
+    <Pioneer3ATSim name="Marvin">
+      <orientation>	{0,0,0} </orientation>
+      <position>	{0,0,0}	</position>
+    </Pioneer3ATSim>
+<!-- definition of a laser attached to the robot, positioning and relative orientation-->
+    <LMS100Sim name="LMS100" linkTo="$Marvin$">
+      <position>	{0.1,0,0.4} </position>
+      <colour r="0" g="1" b="0"/>
+    </LMS100Sim>
+<!-- definition of 3 frontal ultrasounds attached to the robot, position and relative orientation-->
+    <UltrasonicSensor name = "uc0" linkTo="$Marvin$">
+      <orientation>	{0,-0.1,0}	</orientation>
+      <position>	{0.2,0,0.2}	</position>
+      <colour r="0" g="1" b="0"/>
+    </UltrasonicSensor>
+	
+    <UltrasonicSensor name="ul1" linkTo="$Marvin$">
+      <orientation>	{0,-0.1,0.7}    </orientation>
+      <position>	{0.18,0.11,0.2}	</position>
+      <colour r="0" g="1" b="0"/>
+    </UltrasonicSensor>
+	
+    <UltrasonicSensor name="ur1" linkTo="$Marvin$">
+      <orientation>	{0,-0.1,-0.7}    </orientation>
+      <position>	{0.18,-0.11,0.2} </position>
+      <colour r="0" g="1" b="0"/>
+    </UltrasonicSensor>
+  </World>
+</root>
