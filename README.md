@@ -10,7 +10,7 @@
   <p align="center">
     Robotic Navigation Strategies for a Nocturnal Surveillance Application
     <br />
-    <a href="https://github.com/albertoibernon/Autonomous_Surveillance_Robot/main/project_report"><strong>Explore the docs »</strong></a>
+    <a href="https://github.com/albertoibernon/Autonomous_Surveillance_Robot/blob/main/project_report/Guiado_y_Navegacion.pdf"><strong>Explore the docs »</strong></a>
     <br />
     <br />
     <a href="#usage">View Demo</a>
