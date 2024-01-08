@@ -17,14 +17,13 @@ time_step = 0.1;        % [s]
 pos_init  = init(robot,pose_init);
 
 % Varianza del ruido del proceso
-QL   = 1.0312e-05;
-QG   = 1.955e-05;
+QL   = 1.6072e-05;
+QG   = 0.01334e-05;
 Qk_1 = [QL 0;0 QG];
 
 % Varianza del ruido del lidar
-R     = 9.62014799313916e-02;
-vdist = 1.4481e-04;
-vang  = 4.7432e-04;
+vdist = 3.4665e-04;
+vang  = 1.1771e-04;
 
 % Matriz de varianzas de la estimación
 Pxini     = 0.01;
