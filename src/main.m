@@ -18,7 +18,7 @@ pos_init  = init(robot,pose_init);
 
 % Varianza del ruido del proceso
 QL   = 1.6072e-05;
-QG   = 0.01334e-05;
+QG   = 0.01334;
 Qk_1 = [QL 0;0 QG];
 
 % Varianza del ruido del lidar
